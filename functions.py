@@ -153,12 +153,12 @@ def clear_sway_drivers(rig, pb):
 
 def _get_sway_axis_index(axis_str):
     """Convert axis enum string to rotation_euler index."""
-    return {"X": 0, "Y": 1, "Z": 2}.get(axis_str, 2)
+    return {"X": 0, "Z": 2}.get(axis_str, 2)
 
 
 def _get_sub_axis_index(primary_axis_str):
     """Get the sub-wave axis (different from primary for 3D motion)."""
-    mapping = {"X": 1, "Y": 0, "Z": 0}
+    mapping = {"X": 2, "Z": 0}
     return mapping.get(primary_axis_str, 0)
 
 
@@ -306,15 +306,15 @@ def create_sway_chains(chains):
             bone.rotation_mode = 'XYZ'
 
         root_bone = chain[-1][0].pose.bones[chain[-1][1]]
-        axis_str = root_bone.get("flow_sw_axis", 2)
+        axis_str = root_bone.flow_sw_axis
         if isinstance(axis_str, int):
             primary_axis = axis_str
-            sub_axis = {0: 1, 1: 0, 2: 0}[primary_axis]
+            sub_axis = {0: 2, 2: 0}[primary_axis]
         else:
             primary_axis = _get_sway_axis_index(axis_str)
             sub_axis = _get_sub_axis_index(axis_str)
 
-        if root_bone.get("flow_sw_random_seed", 0.0) == 0.0:
+        if root_bone.flow_sw_random_seed == 0.0:
             root_bone["flow_sw_random_seed"] = random.uniform(-2.0, 2.0)
 
         for cc, c_dat in enumerate(chain[::-1]):
@@ -370,10 +370,10 @@ def rebuild_sway_drivers(bone):
 
     total_bones = len(ordered)
 
-    axis_val = root_bone.get("flow_sw_axis", 2)
+    axis_val = root_bone.flow_sw_axis
     if isinstance(axis_val, int):
         primary_axis = axis_val
-        sub_axis = {0: 1, 1: 0, 2: 0}[primary_axis]
+        sub_axis = {0: 2, 2: 0}[primary_axis]
     else:
         primary_axis = _get_sway_axis_index(axis_val)
         sub_axis = _get_sub_axis_index(axis_val)

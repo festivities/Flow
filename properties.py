@@ -277,7 +277,6 @@ def register():
     bpy.types.PoseBone.flow_sw_axis = bpy.props.EnumProperty(
         items=(
             ("X", "X", "Primary sway on the local X rotation axis"),
-            ("Y", "Y", "Primary sway on the local Y rotation axis"),
             ("Z", "Z", "Primary sway on the local Z rotation axis"),
         ),
         default="Z",

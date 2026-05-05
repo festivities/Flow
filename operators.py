@@ -93,10 +93,10 @@ class FLOW_OT_bake_sway(Operator):
         rig_driven = {}
         for chain in sim_chains:
             root_bone = chain[-1][0].pose.bones[chain[-1][1]]
-            axis_val = root_bone.get("flow_sw_axis", 2)
+            axis_val = root_bone.flow_sw_axis
             if isinstance(axis_val, int):
                 primary_axis = axis_val
-                sub_axis = {0: 1, 1: 0, 2: 0}[primary_axis]
+                sub_axis = {0: 2, 2: 0}[primary_axis]
             else:
                 primary_axis = _get_sway_axis_index(axis_val)
                 sub_axis = _get_sub_axis_index(axis_val)
