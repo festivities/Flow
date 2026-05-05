@@ -1,4 +1,4 @@
-from .functions import get_bone_chains, get_selected_bone_chains, clear_sway_drivers, create_sway_chains, get_preset_data, apply_preset, _get_sway_axis_index, _get_sub_axis_index
+from .functions import get_bone_chains, get_selected_bone_chains, clear_sway_drivers, create_sway_chains, get_preset_data, apply_preset
 from bpy.types import Operator
 import bpy
 import os
@@ -51,6 +51,10 @@ class FLOW_OT_remove_sway(Operator):
                 pb = rig.pose.bones[b_dat[1]]
 
                 clear_sway_drivers(rig, pb)
+                for con_name in ("Flow Sway Wind", "Flow Sway Wind Sub"):
+                    con = pb.constraints.get(con_name)
+                    if con:
+                        pb.constraints.remove(con)
 
                 pb.flow_has_sway = False
                 pb.flow_end_of_chain = False
@@ -92,15 +96,7 @@ class FLOW_OT_bake_sway(Operator):
         # {rig: {bone_name: [axis_index, ...]}}
         rig_driven = {}
         for chain in sim_chains:
-            root_bone = chain[-1][0].pose.bones[chain[-1][1]]
-            axis_val = root_bone.flow_sw_axis
-            if isinstance(axis_val, int):
-                primary_axis = axis_val
-                sub_axis = {0: 2, 2: 0}[primary_axis]
-            else:
-                primary_axis = _get_sway_axis_index(axis_val)
-                sub_axis = _get_sub_axis_index(axis_val)
-            driven_axes = [primary_axis, sub_axis]
+            driven_axes = [0, 2]
 
             for b_dat in chain:
                 rig = b_dat[0]
@@ -134,13 +130,17 @@ class FLOW_OT_bake_sway(Operator):
                         samples[(rig, bone_name, axis)].append((frame, val))
         context.scene.frame_set(original_frame)
 
-        # Remove sway drivers to prevent re-evaluation during keyframe insertion
+        # Remove sway drivers and wind constraints to prevent re-evaluation during keyframe insertion
         for chain in sim_chains:
             for b_dat in chain:
                 rig = b_dat[0]
                 pb = rig.pose.bones[b_dat[1]]
                 pb.flow_update = False
                 clear_sway_drivers(rig, pb)
+                for con_name in ("Flow Sway Wind", "Flow Sway Wind Sub"):
+                    con = pb.constraints.get(con_name)
+                    if con:
+                        pb.constraints.remove(con)
 
         # Insert baked keyframes
         for (rig, bone_name, axis), frame_vals in samples.items():
@@ -184,6 +184,7 @@ class FLOW_OT_bake_sway(Operator):
                 pb.flow_has_sway = False
                 pb.flow_end_of_chain = False
                 pb.flow_chain_id = ""
+                pb.flow_sw_wind_object = None
                 pb.flow_update = True
 
         return {"FINISHED"}
@@ -368,6 +369,54 @@ class FLOW_OT_apply_preset(Operator):
         return {"FINISHED"}
 
 
+class FLOW_OT_add_wind_controller(Operator):
+    bl_idname = "flow.add_wind_controller"
+    bl_label = "Add Wind Controller"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+    bl_description = "Creates a wind controller empty to define world-space sway direction"
+
+    def execute(self, context):
+        wind_empty = bpy.data.objects.new("Flow_Wind_Controller_(Scale_for_Power)", None)
+        wind_empty.empty_display_size = 1.25
+        wind_empty.empty_display_type = 'SINGLE_ARROW'
+
+        wind_loc = (0.0, 0.0, 5.0)
+        if context.active_pose_bone is not None:
+            wind_loc = context.active_pose_bone.id_data.matrix_world @ context.active_pose_bone.head
+            wind_loc[2] += 0.5
+
+        wind_empty.location = wind_loc
+        wind_empty.rotation_euler = (-1.5708, 0.0, 0.0)
+
+        context.scene.collection.objects.link(wind_empty)
+
+        for pb in context.selected_pose_bones:
+            if pb.flow_has_sway:
+                pb.flow_sw_wind_object = wind_empty
+
+        wind_empty.select_set(True)
+        context.view_layer.objects.active = wind_empty
+
+        return {"FINISHED"}
+
+
+class FLOW_OT_remove_wind_controller(Operator):
+    bl_idname = "flow.remove_wind_controller"
+    bl_label = "Remove Wind Controller"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+    bl_description = "Removes the wind controller assignment from selected bone chains"
+
+    def execute(self, context):
+        from .functions import rebuild_sway_drivers
+
+        for pb in context.selected_pose_bones:
+            if pb.flow_has_sway:
+                pb.flow_sw_wind_object = None
+                rebuild_sway_drivers(pb)
+
+        return {"FINISHED"}
+
+
 #
 # REGISTRATION
 #
@@ -380,6 +429,8 @@ _classes = [
     FLOW_OT_save_preset,
     FLOW_OT_delete_preset,
     FLOW_OT_apply_preset,
+    FLOW_OT_add_wind_controller,
+    FLOW_OT_remove_wind_controller,
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

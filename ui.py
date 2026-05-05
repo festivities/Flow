@@ -70,27 +70,27 @@ class FLOW_PT_main_panel(Panel):
             row = box.row(align=True)
             row.operator("flow.apply_preset", text="Apply Preset")
 
-            boxx, expanded = draw_subpanel(box, prefs, "sw_general_menu", "General", "FORCE_HARMONIC")
+            boxx, expanded = draw_subpanel(box, prefs, "sw_general_menu", "Wave X", "FORCE_HARMONIC")
             if expanded:
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_amplitude", text="Amplitude")
+                row.prop(pb, "flow_sw_amplitude", text="X Amplitude")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_frequency", text="Frequency (Hz)")
+                row.prop(pb, "flow_sw_frequency", text="X Frequency (Hz)")
 
                 row = boxx.row(align=True)
                 loop_period = 1.0 / max(pb.flow_sw_frequency * pb.flow_sw_speed, 0.001)
                 row.label(text=f"Loop Period: {loop_period:.2f}s")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_delay", text="Delay")
+                row.prop(pb, "flow_sw_delay", text="X Delay")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_offset", text="Offset (frames)")
+                row.prop(pb, "flow_sw_offset", text="X Offset (frames)")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_falloff_start", text="Root Falloff")
+                row.prop(pb, "flow_sw_falloff_start", text="X Root Falloff")
 
                 boxx.separator()
 
@@ -100,26 +100,37 @@ class FLOW_PT_main_panel(Panel):
                 row = boxx.row(align=True)
                 row.prop(pb, "flow_sw_random_seed", text="Random Seed")
 
-                row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_axis", text="Primary Axis")
-
-            boxxx, expanded = draw_subpanel(boxx, prefs, "sw_subwave_menu", "Sub-Wave", "MOD_WAVE")
+            boxxx, expanded = draw_subpanel(boxx, prefs, "sw_subwave_menu", "Wave Z", "MOD_WAVE")
             if expanded:
 
                 row = boxxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_amplitude", text="Sub Amplitude")
+                row.prop(pb, "flow_sw_sub_amplitude", text="Z Amplitude")
 
                 row = boxxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_frequency", text="Sub Frequency (Hz)")
+                row.prop(pb, "flow_sw_sub_frequency", text="Z Frequency (Hz)")
 
                 row = boxxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_delay", text="Sub Delay")
+                row.prop(pb, "flow_sw_sub_delay", text="Z Delay")
 
                 row = boxxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_offset", text="Sub Offset (frames)")
+                row.prop(pb, "flow_sw_sub_offset", text="Z Offset (frames)")
 
                 row = boxxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_falloff_start", text="Sub Root Falloff")
+                row.prop(pb, "flow_sw_sub_falloff_start", text="Z Root Falloff")
+
+            boxww, expanded = draw_subpanel(boxx, prefs, "sw_wind_menu", "Wind Controller", "FORCE_WIND")
+            if expanded:
+                has_wind = pb.flow_sw_wind_object is not None
+                if not has_wind:
+                    row = boxww.row(align=True)
+                    row.operator("flow.add_wind_controller", text="Add Wind Controller")
+                    row.scale_y = 2.0
+                else:
+                    row = boxww.row(align=True)
+                    row.prop(pb, "flow_sw_wind_object", text="Controller")
+                    row = boxww.row(align=True)
+                    row.operator("flow.remove_wind_controller", text="Remove Wind Controller")
+                    row.scale_y = 1.5
 
             row = boxx.row(align=True)
             row.prop(pb, "flow_influence", text="Influence")

@@ -1,4 +1,4 @@
-from .functions import rebuild_sway_drivers, load_presets
+from .functions import load_presets
 from bpy.types import AddonPreferences
 import bpy
 import os
@@ -103,9 +103,9 @@ def update_sw_sub_falloff_start(self, context):
     return
 
 
-def update_sw_axis(self, context):
-    update_sw_prop(self, "flow_sw_axis", context.active_pose_bone.flow_sw_axis)
-    rebuild_sway_drivers(context.active_pose_bone)
+def update_wind_object(self, context):
+    from .functions import rebuild_sway_drivers
+    rebuild_sway_drivers(self)
     return
 
 
@@ -150,6 +150,9 @@ class FlowPreferences(AddonPreferences):
         default=True,
     )
     sw_subwave_menu: bpy.props.BoolProperty(
+        default=True,
+    )
+    sw_wind_menu: bpy.props.BoolProperty(
         default=True,
     )
 
@@ -274,14 +277,11 @@ def register():
         override={"LIBRARY_OVERRIDABLE"},
     )
 
-    bpy.types.PoseBone.flow_sw_axis = bpy.props.EnumProperty(
-        items=(
-            ("X", "X", "Primary sway on the local X rotation axis"),
-            ("Z", "Z", "Primary sway on the local Z rotation axis"),
-        ),
-        default="Z",
-        description="Bone-local rotation axis for the primary sway wave",
-        update=update_sw_axis,
+    bpy.types.PoseBone.flow_sw_wind_object = bpy.props.PointerProperty(
+        type=bpy.types.Object,
+        name="Wind Controller",
+        description="Object whose world-space rotation defines the sway direction. When set, bone chains sway aligned to this object's orientation in world space",
+        update=update_wind_object,
         options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
@@ -345,7 +345,7 @@ def unregister():
     del bpy.types.PoseBone.flow_sw_sub_delay
     del bpy.types.PoseBone.flow_sw_sub_frequency
     del bpy.types.PoseBone.flow_sw_sub_amplitude
-    del bpy.types.PoseBone.flow_sw_axis
+    del bpy.types.PoseBone.flow_sw_wind_object
     del bpy.types.PoseBone.flow_sw_random_seed
     del bpy.types.PoseBone.flow_sw_speed
     del bpy.types.PoseBone.flow_sw_falloff_start
