@@ -1,0 +1,12 @@
+schema_version = "1.0.0"
+id = "flow"
+version = "1.0.0"
+name = "Flow"
+tagline = "Procedural wavy bone chain animation using sine-wave drivers"
+maintainer = "festivity"
+type = "add-on"
+blender_version_min = "4.2.0"
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+tags = ["Animation"]
