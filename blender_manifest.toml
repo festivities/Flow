@@ -10,3 +10,4 @@ license = [
   "SPDX:GPL-3.0-or-later",
 ]
 tags = ["Animation"]
+website = "https://github.com/festivities/Flow"
