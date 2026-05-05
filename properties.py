@@ -78,6 +78,11 @@ def update_sw_random_seed(self, context):
     return
 
 
+def update_sw_roll(self, context):
+    update_sw_prop(self, "flow_sw_roll", context.active_pose_bone.flow_sw_roll)
+    return
+
+
 def update_sw_sub_amplitude(self, context):
     update_sw_prop(self, "flow_sw_sub_amplitude", context.active_pose_bone.flow_sw_sub_amplitude)
     return
@@ -190,7 +195,7 @@ def register():
         default=5.0,
         min=0.0,
         max=90.0,
-        description="Maximum rotation angle in degrees for the X-axis sway wave",
+        description="Maximum rotation angle in degrees for the main axis sway wave",
         update=update_sw_amplitude,
         options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
@@ -256,11 +261,21 @@ def register():
         override={"LIBRARY_OVERRIDABLE"},
     )
 
+    bpy.types.PoseBone.flow_sw_roll = bpy.props.FloatProperty(
+        default=0.0,
+        min=-360.0,
+        max=360.0,
+        description="Per-bone phase offset in degrees to curve the sway direction along the chain",
+        update=update_sw_roll,
+        options={"LIBRARY_EDITABLE"},
+        override={"LIBRARY_OVERRIDABLE"},
+    )
+
     bpy.types.PoseBone.flow_sw_sub_amplitude = bpy.props.FloatProperty(
         default=0.0,
         min=0.0,
         max=90.0,
-        description="Maximum rotation angle in degrees for the Z-axis sway wave",
+        description="Maximum rotation angle in degrees for the sub axis sway wave",
         update=update_sw_sub_amplitude,
         options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
@@ -316,6 +331,7 @@ def unregister():
     del bpy.types.PoseBone.flow_sw_sub_frequency
     del bpy.types.PoseBone.flow_sw_sub_amplitude
     del bpy.types.PoseBone.flow_sw_random_seed
+    del bpy.types.PoseBone.flow_sw_roll
     del bpy.types.PoseBone.flow_sw_speed
     del bpy.types.PoseBone.flow_sw_falloff_start
     del bpy.types.PoseBone.flow_sw_offset

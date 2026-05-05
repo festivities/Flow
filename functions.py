@@ -141,7 +141,7 @@ def clear_sway_drivers(rig, pb):
             if drv.data_path.startswith(bone_path) and "rotation_euler" in drv.data_path:
                 has_marker = False
                 for var in drv.driver.variables:
-                    if var.name == "flow_sway_marker":
+                    if var.name == "sw":
                         has_marker = True
                         break
                 if has_marker:
@@ -174,77 +174,117 @@ def _add_sway_driver(rig, pb, axis_index, bone_index, total_bones, is_sub=False)
     root_path = chain_root.path_from_id()
 
     var_marker = drv.variables.new()
-    var_marker.name = "flow_sway_marker"
+    var_marker.name = "sw"
     var_marker.type = 'SINGLE_PROP'
     var_marker.targets[0].id_type = 'OBJECT'
     var_marker.targets[0].id = rig
     var_marker.targets[0].data_path = root_path + '.flow_has_sway'
 
-    prefix = "sub_" if is_sub else ""
-    prop_prefix = "flow_sw_sub_" if is_sub else "flow_sw_"
-
     var_amp = drv.variables.new()
-    var_amp.name = prefix + "amp"
+    var_amp.name = "amp"
     var_amp.type = 'SINGLE_PROP'
     var_amp.targets[0].id_type = 'OBJECT'
     var_amp.targets[0].id = rig
-    var_amp.targets[0].data_path = root_path + '.' + prop_prefix + 'amplitude'
+    var_amp.targets[0].data_path = root_path + '.flow_sw_amplitude'
 
-    var_freq = drv.variables.new()
-    var_freq.name = prefix + "freq"
-    var_freq.type = 'SINGLE_PROP'
-    var_freq.targets[0].id_type = 'OBJECT'
-    var_freq.targets[0].id = rig
-    var_freq.targets[0].data_path = root_path + '.' + prop_prefix + 'frequency'
+    var_frq = drv.variables.new()
+    var_frq.name = "frq"
+    var_frq.type = 'SINGLE_PROP'
+    var_frq.targets[0].id_type = 'OBJECT'
+    var_frq.targets[0].id = rig
+    var_frq.targets[0].data_path = root_path + '.flow_sw_frequency'
 
-    var_delay = drv.variables.new()
-    var_delay.name = prefix + "delay"
-    var_delay.type = 'SINGLE_PROP'
-    var_delay.targets[0].id_type = 'OBJECT'
-    var_delay.targets[0].id = rig
-    var_delay.targets[0].data_path = root_path + '.' + prop_prefix + 'delay'
+    var_dly = drv.variables.new()
+    var_dly.name = "dly"
+    var_dly.type = 'SINGLE_PROP'
+    var_dly.targets[0].id_type = 'OBJECT'
+    var_dly.targets[0].id = rig
+    var_dly.targets[0].data_path = root_path + '.flow_sw_delay'
 
-    var_offset = drv.variables.new()
-    var_offset.name = prefix + "offset"
-    var_offset.type = 'SINGLE_PROP'
-    var_offset.targets[0].id_type = 'OBJECT'
-    var_offset.targets[0].id = rig
-    var_offset.targets[0].data_path = root_path + '.' + prop_prefix + 'offset'
+    var_off = drv.variables.new()
+    var_off.name = "off"
+    var_off.type = 'SINGLE_PROP'
+    var_off.targets[0].id_type = 'OBJECT'
+    var_off.targets[0].id = rig
+    var_off.targets[0].data_path = root_path + '.flow_sw_offset'
 
     var_fo = drv.variables.new()
-    var_fo.name = prefix + "fo_start"
+    var_fo.name = "fo"
     var_fo.type = 'SINGLE_PROP'
     var_fo.targets[0].id_type = 'OBJECT'
     var_fo.targets[0].id = rig
-    var_fo.targets[0].data_path = root_path + '.' + prop_prefix + 'falloff_start'
+    var_fo.targets[0].data_path = root_path + '.flow_sw_falloff_start'
 
-    var_speed = drv.variables.new()
-    var_speed.name = "speed"
-    var_speed.type = 'SINGLE_PROP'
-    var_speed.targets[0].id_type = 'OBJECT'
-    var_speed.targets[0].id = rig
-    var_speed.targets[0].data_path = root_path + '.flow_sw_speed'
+    var_amp2 = drv.variables.new()
+    var_amp2.name = "a2"
+    var_amp2.type = 'SINGLE_PROP'
+    var_amp2.targets[0].id_type = 'OBJECT'
+    var_amp2.targets[0].id = rig
+    var_amp2.targets[0].data_path = root_path + '.flow_sw_sub_amplitude'
 
-    var_seed = drv.variables.new()
-    var_seed.name = "rseed"
-    var_seed.type = 'SINGLE_PROP'
-    var_seed.targets[0].id_type = 'OBJECT'
-    var_seed.targets[0].id = rig
-    var_seed.targets[0].data_path = root_path + '.flow_sw_random_seed'
+    var_frq2 = drv.variables.new()
+    var_frq2.name = "f2"
+    var_frq2.type = 'SINGLE_PROP'
+    var_frq2.targets[0].id_type = 'OBJECT'
+    var_frq2.targets[0].id = rig
+    var_frq2.targets[0].data_path = root_path + '.flow_sw_sub_frequency'
 
-    fps_val = bpy.context.scene.render.fps
+    var_dly2 = drv.variables.new()
+    var_dly2.name = "d2"
+    var_dly2.type = 'SINGLE_PROP'
+    var_dly2.targets[0].id_type = 'OBJECT'
+    var_dly2.targets[0].id = rig
+    var_dly2.targets[0].data_path = root_path + '.flow_sw_sub_delay'
+
+    var_off2 = drv.variables.new()
+    var_off2.name = "o2"
+    var_off2.type = 'SINGLE_PROP'
+    var_off2.targets[0].id_type = 'OBJECT'
+    var_off2.targets[0].id = rig
+    var_off2.targets[0].data_path = root_path + '.flow_sw_sub_offset'
+
+    var_fo2 = drv.variables.new()
+    var_fo2.name = "g2"
+    var_fo2.type = 'SINGLE_PROP'
+    var_fo2.targets[0].id_type = 'OBJECT'
+    var_fo2.targets[0].id = rig
+    var_fo2.targets[0].data_path = root_path + '.flow_sw_sub_falloff_start'
+
+    var_sp = drv.variables.new()
+    var_sp.name = "sp"
+    var_sp.type = 'SINGLE_PROP'
+    var_sp.targets[0].id_type = 'OBJECT'
+    var_sp.targets[0].id = rig
+    var_sp.targets[0].data_path = root_path + '.flow_sw_speed'
+
+    var_rs = drv.variables.new()
+    var_rs.name = "rs"
+    var_rs.type = 'SINGLE_PROP'
+    var_rs.targets[0].id_type = 'OBJECT'
+    var_rs.targets[0].id = rig
+    var_rs.targets[0].data_path = root_path + '.flow_sw_random_seed'
+
+    var_rl = drv.variables.new()
+    var_rl.name = "rl"
+    var_rl.type = 'SINGLE_PROP'
+    var_rl.targets[0].id_type = 'OBJECT'
+    var_rl.targets[0].id = rig
+    var_rl.targets[0].data_path = pb.path_from_id() + '.flow_sw_roll'
+
+    fps = bpy.context.scene.render.fps
 
     bi = bone_index
     tb = max(total_bones - 1, 1)
-    tb2 = total_bones * 2
+    f1 = round(bi / tb, 4)
+    f2_const = round(bi / (total_bones * 2), 4)
 
-    expr = (
-        "("
-        f"radians({prefix}amp) "
-        f"* ({prefix}fo_start + (1.0 - {prefix}fo_start) * ({bi} / {tb})) "
-        f"* sin(6.283185 * {prefix}freq * speed * (frame + {prefix}delay * ({bi} / {tb2}) + rseed * {fps_val}) / {fps_val} + {prefix}offset / {fps_val}) "
-        ")"
-    )
+    xw = f"radians(amp)*(fo+(1-fo)*{f1})*sin(2*pi*frq*sp*(frame+dly*{f2_const}+rs*{fps})/{fps}+off/{fps})"
+    zw = f"radians(a2)*(g2+(1-g2)*{f1})*sin(2*pi*f2*sp*(frame+d2*{f2_const}+rs*{fps})/{fps}+o2/{fps})"
+
+    if is_sub:
+        expr = f"{xw}*sin(radians(rl))+{zw}*cos(radians(rl))"
+    else:
+        expr = f"{xw}*cos(radians(rl))-{zw}*sin(radians(rl))"
 
     drv.expression = expr
 

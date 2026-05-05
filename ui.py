@@ -70,7 +70,7 @@ class FLOW_PT_main_panel(Panel):
             row = box.row(align=True)
             row.operator("flow.apply_preset", text="Apply Preset")
 
-            boxx, expanded = draw_subpanel(box, prefs, "sw_general_menu", "X-Axis Wave", "FORCE_HARMONIC")
+            boxx, expanded = draw_subpanel(box, prefs, "sw_general_menu", "Main Axis Wave", "MOD_WAVE")
             if expanded:
 
                 row = boxx.row(align=True)
@@ -88,7 +88,7 @@ class FLOW_PT_main_panel(Panel):
                 row = boxx.row(align=True)
                 row.prop(pb, "flow_sw_falloff_start", text="Root Falloff")
 
-            boxx, expanded = draw_subpanel(box, prefs, "sw_subwave_menu", "Z-Axis Wave", "MOD_WAVE")
+            boxx, expanded = draw_subpanel(box, prefs, "sw_subwave_menu", "Sub Axis Wave", "MOD_WAVE")
             if expanded:
 
                 row = boxx.row(align=True)
@@ -106,14 +106,17 @@ class FLOW_PT_main_panel(Panel):
                 row = boxx.row(align=True)
                 row.prop(pb, "flow_sw_sub_falloff_start", text="Root Falloff")
 
-            boxx, expanded = draw_subpanel(box, prefs, "sw_global_menu", "General", "SETTINGS")
+            boxx, expanded = draw_subpanel(box, prefs, "sw_global_menu", "General (Per-chain)", "SETTINGS")
             if expanded:
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_speed", text="Speed Multiplier")
+                row.prop(pb, "flow_sw_roll", text="Y-Axis Roll")
 
                 row = boxx.row(align=True)
                 row.prop(pb, "flow_sw_random_seed", text="Random Seed")
+
+                row = boxx.row(align=True)
+                row.prop(pb, "flow_sw_speed", text="Speed Multiplier")
 
 
 _classes = [

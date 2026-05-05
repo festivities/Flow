@@ -242,6 +242,7 @@ class FLOW_OT_save_preset(Operator):
             s_dat["flow_sw_falloff_start"] = pb.flow_sw_falloff_start
             s_dat["flow_sw_speed"] = pb.flow_sw_speed
             s_dat["flow_sw_random_seed"] = pb.flow_sw_random_seed
+            s_dat["flow_sw_roll"] = pb.flow_sw_roll
 
             s_dat["flow_sw_sub_amplitude"] = pb.flow_sw_sub_amplitude
             s_dat["flow_sw_sub_frequency"] = pb.flow_sw_sub_frequency
