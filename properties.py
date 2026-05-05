@@ -103,17 +103,6 @@ def update_sw_sub_falloff_start(self, context):
     return
 
 
-def update_wind_object(self, context):
-    from .functions import rebuild_sway_drivers
-    rebuild_sway_drivers(self)
-    return
-
-
-def update_influence(self, context):
-    update_sw_prop(self, "flow_influence", context.active_pose_bone.flow_influence)
-    return
-
-
 #
 # PREFERENCES
 #
@@ -152,7 +141,7 @@ class FlowPreferences(AddonPreferences):
     sw_subwave_menu: bpy.props.BoolProperty(
         default=True,
     )
-    sw_wind_menu: bpy.props.BoolProperty(
+    sw_global_menu: bpy.props.BoolProperty(
         default=True,
     )
 
@@ -196,22 +185,12 @@ def register():
         default=True, options={"LIBRARY_EDITABLE"}, override={"LIBRARY_OVERRIDABLE"}
     )
 
-    bpy.types.PoseBone.flow_influence = bpy.props.FloatProperty(
-        default=1.0,
-        min=0.0,
-        max=1.0,
-        description="0-1 influence of how much the bone follows the sway animation",
-        update=update_influence,
-        options={"LIBRARY_EDITABLE"},
-        override={"LIBRARY_OVERRIDABLE"},
-    )
-
     # Sway Chain Properties
     bpy.types.PoseBone.flow_sw_amplitude = bpy.props.FloatProperty(
         default=5.0,
         min=0.0,
         max=90.0,
-        description="Maximum rotation angle in degrees for the primary sway wave",
+        description="Maximum rotation angle in degrees for the X-axis sway wave",
         update=update_sw_amplitude,
         options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
@@ -277,20 +256,11 @@ def register():
         override={"LIBRARY_OVERRIDABLE"},
     )
 
-    bpy.types.PoseBone.flow_sw_wind_object = bpy.props.PointerProperty(
-        type=bpy.types.Object,
-        name="Wind Controller",
-        description="Object whose world-space rotation defines the sway direction. When set, bone chains sway aligned to this object's orientation in world space",
-        update=update_wind_object,
-        options={"LIBRARY_EDITABLE"},
-        override={"LIBRARY_OVERRIDABLE"},
-    )
-
     bpy.types.PoseBone.flow_sw_sub_amplitude = bpy.props.FloatProperty(
         default=0.0,
         min=0.0,
         max=90.0,
-        description="Maximum rotation angle in degrees for the secondary sub-wave (on a different axis)",
+        description="Maximum rotation angle in degrees for the Z-axis sway wave",
         update=update_sw_sub_amplitude,
         options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
@@ -300,7 +270,7 @@ def register():
         default=2.0,
         min=0.01,
         max=20.0,
-        description="Number of complete sub-wave cycles per second",
+        description="Number of complete Z-axis wave cycles per second",
         update=update_sw_sub_frequency,
         options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
@@ -310,7 +280,7 @@ def register():
         default=1.5,
         min=0.0,
         max=48.0,
-        description="Frame offset between bones for the sub-wave cascade (in frames)",
+        description="Frame offset between bones for the Z-axis wave cascade (in frames)",
         update=update_sw_sub_delay,
         options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
@@ -320,7 +290,7 @@ def register():
         default=0.0,
         min=-100.0,
         max=100.0,
-        description="Frame offset for the sub-wave starting position",
+        description="Frame offset for the Z-axis wave starting position",
         update=update_sw_sub_offset,
         options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
@@ -330,7 +300,7 @@ def register():
         default=0.0,
         min=0.0,
         max=1.0,
-        description="Sub-wave amplitude factor at the chain root",
+        description="Z-axis wave amplitude factor at the chain root",
         update=update_sw_sub_falloff_start,
         options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
@@ -345,7 +315,6 @@ def unregister():
     del bpy.types.PoseBone.flow_sw_sub_delay
     del bpy.types.PoseBone.flow_sw_sub_frequency
     del bpy.types.PoseBone.flow_sw_sub_amplitude
-    del bpy.types.PoseBone.flow_sw_wind_object
     del bpy.types.PoseBone.flow_sw_random_seed
     del bpy.types.PoseBone.flow_sw_speed
     del bpy.types.PoseBone.flow_sw_falloff_start
@@ -353,7 +322,6 @@ def unregister():
     del bpy.types.PoseBone.flow_sw_delay
     del bpy.types.PoseBone.flow_sw_frequency
     del bpy.types.PoseBone.flow_sw_amplitude
-    del bpy.types.PoseBone.flow_influence
     del bpy.types.PoseBone.flow_update
     del bpy.types.PoseBone.flow_end_of_chain
     del bpy.types.PoseBone.flow_chain_id

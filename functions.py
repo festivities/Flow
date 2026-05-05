@@ -151,136 +151,6 @@ def clear_sway_drivers(rig, pb):
             rig.animation_data.drivers.remove(drv)
 
 
-
-
-def _get_wind_object(pose_bone):
-    """Get the wind controller object for a chain (reads from the chain root)."""
-    wind_obj = pose_bone.flow_sw_wind_object
-    if wind_obj is not None:
-        return wind_obj
-    for par in pose_bone.parent_recursive:
-        if par.flow_has_sway and par.flow_chain_id == pose_bone.flow_chain_id:
-            if par.flow_sw_wind_object is not None:
-                return par.flow_sw_wind_object
-            if par.flow_end_of_chain:
-                break
-        if not par.flow_has_sway:
-            break
-    return None
-
-
-def _add_sway_wind_constraint(rig, pb, bone_index, total_bones, is_sub=False):
-    """Add a COPY_ROTATION constraint driven by the sway wave expression for world-space wind."""
-    wind_obj = _get_wind_object(pb)
-    if wind_obj is None:
-        return
-
-    con = pb.constraints.new('COPY_ROTATION')
-    con.name = "Flow Sway Wind" + (" Sub" if is_sub else "")
-    con.target = wind_obj
-    con.owner_space = 'WORLD'
-    con.target_space = 'WORLD'
-    con.mix_mode = 'ADD'
-
-    chain_root = pb
-    for par in pb.parent_recursive:
-        if par.flow_has_sway and par.flow_chain_id == pb.flow_chain_id:
-            chain_root = par
-            if par.flow_end_of_chain:
-                break
-        else:
-            break
-
-    root_path = chain_root.path_from_id()
-    bone_path = pb.path_from_id()
-    data_path = bone_path + '.constraints["' + con.name + '"].influence'
-
-    fc = rig.driver_add(data_path)
-    drv = fc.driver
-    drv.type = 'SCRIPTED'
-
-    prefix = "sub_" if is_sub else ""
-    prop_prefix = "flow_sw_sub_" if is_sub else "flow_sw_"
-
-    var_amp = drv.variables.new()
-    var_amp.name = prefix + "amp"
-    var_amp.type = 'SINGLE_PROP'
-    var_amp.targets[0].id_type = 'OBJECT'
-    var_amp.targets[0].id = rig
-    var_amp.targets[0].data_path = root_path + '.' + prop_prefix + 'amplitude'
-
-    var_freq = drv.variables.new()
-    var_freq.name = prefix + "freq"
-    var_freq.type = 'SINGLE_PROP'
-    var_freq.targets[0].id_type = 'OBJECT'
-    var_freq.targets[0].id = rig
-    var_freq.targets[0].data_path = root_path + '.' + prop_prefix + 'frequency'
-
-    var_delay = drv.variables.new()
-    var_delay.name = prefix + "delay"
-    var_delay.type = 'SINGLE_PROP'
-    var_delay.targets[0].id_type = 'OBJECT'
-    var_delay.targets[0].id = rig
-    var_delay.targets[0].data_path = root_path + '.' + prop_prefix + 'delay'
-
-    var_offset = drv.variables.new()
-    var_offset.name = prefix + "offset"
-    var_offset.type = 'SINGLE_PROP'
-    var_offset.targets[0].id_type = 'OBJECT'
-    var_offset.targets[0].id = rig
-    var_offset.targets[0].data_path = root_path + '.' + prop_prefix + 'offset'
-
-    var_fo = drv.variables.new()
-    var_fo.name = prefix + "fo_start"
-    var_fo.type = 'SINGLE_PROP'
-    var_fo.targets[0].id_type = 'OBJECT'
-    var_fo.targets[0].id = rig
-    var_fo.targets[0].data_path = root_path + '.' + prop_prefix + 'falloff_start'
-
-    var_speed = drv.variables.new()
-    var_speed.name = "speed"
-    var_speed.type = 'SINGLE_PROP'
-    var_speed.targets[0].id_type = 'OBJECT'
-    var_speed.targets[0].id = rig
-    var_speed.targets[0].data_path = root_path + '.flow_sw_speed'
-
-    var_seed = drv.variables.new()
-    var_seed.name = "rseed"
-    var_seed.type = 'SINGLE_PROP'
-    var_seed.targets[0].id_type = 'OBJECT'
-    var_seed.targets[0].id = rig
-    var_seed.targets[0].data_path = root_path + '.flow_sw_random_seed'
-
-    var_inf = drv.variables.new()
-    var_inf.name = "influence"
-    var_inf.type = 'SINGLE_PROP'
-    var_inf.targets[0].id_type = 'OBJECT'
-    var_inf.targets[0].id = rig
-    var_inf.targets[0].data_path = pb.path_from_id() + '.flow_influence'
-
-    fps_val = bpy.context.scene.render.fps
-
-    bi = bone_index
-    tb = max(total_bones - 1, 1)
-    tb2 = total_bones * 2
-
-    expr = (
-        "max(0, min(1, "
-        f"({prefix}amp / 90.0) "
-        f"* ({prefix}fo_start + (1.0 - {prefix}fo_start) * ({bi} / {tb})) "
-        f"* (sin(6.283185 * {prefix}freq * speed * (frame + {prefix}delay * ({bi} / {tb2}) + rseed * {fps_val}) / {fps_val} + {prefix}offset / {fps_val}) + 1) * 0.5 "
-        "* influence"
-        "))"
-    )
-
-    drv.expression = expr
-
-    while len(fc.keyframe_points) > 0:
-        fc.keyframe_points.remove(fc.keyframe_points[0])
-
-    return
-
-
 def _add_sway_driver(rig, pb, axis_index, bone_index, total_bones, is_sub=False):
     """Add a single sway driver to a bone's rotation channel."""
     bone_path = pb.path_from_id()
@@ -362,13 +232,6 @@ def _add_sway_driver(rig, pb, axis_index, bone_index, total_bones, is_sub=False)
     var_seed.targets[0].id = rig
     var_seed.targets[0].data_path = root_path + '.flow_sw_random_seed'
 
-    var_inf = drv.variables.new()
-    var_inf.name = "influence"
-    var_inf.type = 'SINGLE_PROP'
-    var_inf.targets[0].id_type = 'OBJECT'
-    var_inf.targets[0].id = rig
-    var_inf.targets[0].data_path = pb.path_from_id() + '.flow_influence'
-
     fps_val = bpy.context.scene.render.fps
 
     bi = bone_index
@@ -380,7 +243,6 @@ def _add_sway_driver(rig, pb, axis_index, bone_index, total_bones, is_sub=False)
         f"radians({prefix}amp) "
         f"* ({prefix}fo_start + (1.0 - {prefix}fo_start) * ({bi} / {tb})) "
         f"* sin(6.283185 * {prefix}freq * speed * (frame + {prefix}delay * ({bi} / {tb2}) + rseed * {fps_val}) / {fps_val} + {prefix}offset / {fps_val}) "
-        "* influence"
         ")"
     )
 
@@ -425,15 +287,9 @@ def create_sway_chains(chains):
             bone.rotation_mode = 'XYZ'
 
         root_bone = chain[-1][0].pose.bones[chain[-1][1]]
-        wind_obj = root_bone.flow_sw_wind_object
 
         if root_bone.flow_sw_random_seed == 0.0:
             root_bone["flow_sw_random_seed"] = random.uniform(-2.0, 2.0)
-
-        primary_axis = 0
-        sub_axis = 2
-
-        use_wind = wind_obj is not None
 
         for cc, c_dat in enumerate(chain[::-1]):
             rig = c_dat[0]
@@ -441,12 +297,9 @@ def create_sway_chains(chains):
 
             bone_index = cc
 
-            if use_wind:
-                _add_sway_wind_constraint(rig, bone, bone_index, total_bones, is_sub=False)
-                _add_sway_wind_constraint(rig, bone, bone_index, total_bones, is_sub=True)
-            else:
-                _add_sway_driver(rig, bone, primary_axis, bone_index, total_bones, is_sub=False)
-                _add_sway_driver(rig, bone, sub_axis, bone_index, total_bones, is_sub=True)
+            _add_sway_driver(rig, bone, 0, bone_index, total_bones, is_sub=False)
+
+            _add_sway_driver(rig, bone, 2, bone_index, total_bones, is_sub=True)
 
     return
 
@@ -491,23 +344,10 @@ def rebuild_sway_drivers(bone):
 
     total_bones = len(ordered)
 
-    wind_obj = root_bone.flow_sw_wind_object
-    use_wind = wind_obj is not None
-    primary_axis = 0
-    sub_axis = 2
-
     for cc, pb in enumerate(ordered):
-        if use_wind:
-            for con_name in ("Flow Sway Wind", "Flow Sway Wind Sub"):
-                con = pb.constraints.get(con_name)
-                if con:
-                    pb.constraints.remove(con)
-            _add_sway_wind_constraint(rig, pb, cc, total_bones, is_sub=False)
-            _add_sway_wind_constraint(rig, pb, cc, total_bones, is_sub=True)
-        else:
-            clear_sway_drivers(rig, pb)
-            _add_sway_driver(rig, pb, primary_axis, cc, total_bones, is_sub=False)
-            _add_sway_driver(rig, pb, sub_axis, cc, total_bones, is_sub=True)
+        clear_sway_drivers(rig, pb)
+        _add_sway_driver(rig, pb, 0, cc, total_bones, is_sub=False)
+        _add_sway_driver(rig, pb, 2, cc, total_bones, is_sub=True)
 
     return
 
