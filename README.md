@@ -1,3 +1,10 @@
+<br>
+<p align="center">
+    <a href="https://github.com/festivities/Flow"><img src="https://b.catgirlsare.sexy/Dw28MpuStI6N.gif" alt="Flow"/></a>
+</p>
+
+---
+
 <h1 align = "center">Flow</h1>
 
 <p align = "center">This extension lets you easily make bone chains sway. It's essentially a port of <a href="https://youtu.be/oiEjz_-8wfk">AFPHairRig</a> from the After Effects community.</a></p>
@@ -32,15 +39,21 @@ This extension is confirmed to be compatible with the following Blender versions
 - 5.1.0
 - 5.1.1
 
+## Known issues
+
+- There are noticeable discontinuities and visual jittering during preview. I have no idea why this is the case but baking the sway should eliminate all of it. 
+
 ## Support
+
 - [Discord server](https://discord.gg/85rP9SpAkF)
 - Either contact me or [create an issue](https://github.com/festivities/Flow/issues/new/choose) for any problems that may arise.
 - This extension is provided 'as-is' without any guarantee of technical support, maintenance, or future updates.
 
 ## Special thanks
+
 - [Anthony Possobon](https://www.youtube.com/@anthonypossobon)
 
 ## [License](./LICENSE)
 
 ## Transparency on AI
-This extension was built **with** the assistance of AI *(Claude Opus 4.6, DeepSeek V4 Pro)* and is based on <a href="https://youtu.be/oiEjz_-8wfk">AFPHairRig</a>, a **free** and **source-available** script.
+This extension was built with the assistance of AI *(Claude Opus 4.6, DeepSeek V4 Pro)* and is based on <a href="https://youtu.be/oiEjz_-8wfk">AFPHairRig</a>, a **free** and **source-available** script.
