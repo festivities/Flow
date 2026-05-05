@@ -1,4 +1,4 @@
-from .functions import get_bone_chains, get_selected_bone_chains, clear_sway_drivers, create_sway_chains, get_preset_data, apply_preset
+from .functions import get_bone_chains, get_selected_bone_chains, clear_sway_drivers, create_sway_chains, get_preset_data, apply_preset, _get_sway_axis_index, _get_sub_axis_index
 from bpy.types import Operator
 import bpy
 import os
@@ -72,13 +72,12 @@ class FLOW_OT_bake_sway(Operator):
     )
 
     def execute(self, context):
-        chain_ids, rigs = [], []
-        for bo in context.selected_pose_bones:
-            if bo.flow_has_sway and bo.flow_chain_id not in chain_ids:
-                if [bo.id_data, bo.flow_chain_id] not in chain_ids:
-                    chain_ids.append([bo.id_data, bo.flow_chain_id])
-                if bo.id_data not in rigs:
-                    rigs.append(bo.id_data)
+        if context.scene.use_preview_range:
+            frame_start = context.scene.frame_preview_start
+            frame_end = context.scene.frame_preview_end
+        else:
+            frame_start = context.scene.frame_start
+            frame_end = context.scene.frame_end
 
         sim_chains = get_selected_bone_chains(context.selected_pose_bones)
 
@@ -89,112 +88,103 @@ class FLOW_OT_bake_sway(Operator):
             )
             return {"CANCELLED"}
 
-        skip_rigs = []
-        for c, chain in enumerate(sim_chains):
+        # Collect which axes are driven for each bone in each rig
+        # {rig: {bone_name: [axis_index, ...]}}
+        rig_driven = {}
+        for chain in sim_chains:
+            root_bone = chain[-1][0].pose.bones[chain[-1][1]]
+            axis_val = root_bone.get("flow_sw_axis", 2)
+            if isinstance(axis_val, int):
+                primary_axis = axis_val
+                sub_axis = {0: 1, 1: 0, 2: 0}[primary_axis]
+            else:
+                primary_axis = _get_sway_axis_index(axis_val)
+                sub_axis = _get_sub_axis_index(axis_val)
+            driven_axes = [primary_axis, sub_axis]
 
-            for b, bo_dat in enumerate(chain):
-                rig = bo_dat[0]
-                bo = rig.pose.bones[bo_dat[1]]
+            for b_dat in chain:
+                rig = b_dat[0]
+                bone_name = b_dat[1]
+                if rig not in rig_driven:
+                    rig_driven[rig] = {}
+                rig_driven[rig][bone_name] = driven_axes
 
-                if b == 0 and rig not in skip_rigs:
-                    skip_rigs.append(rig)
+        # Sample driver-evaluated values frame by frame
+        # {(rig, bone_name, axis_index): [(frame, value), ...]}
+        samples = {}
+        for rig, bone_data in rig_driven.items():
+            for bone_name, axes in bone_data.items():
+                for axis in axes:
+                    samples[(rig, bone_name, axis)] = []
 
-                    rig.hide_viewport = False
-                    rig.hide_select = False
-                    for pb in rig.pose.bones:
-                        if bpy.app.version[0] >= 5:
-                            pb.select = False
-                        else:
-                            pb.bone.select = False
+        original_frame = context.scene.frame_current
+        for frame in range(frame_start, frame_end + 1):
+            context.scene.frame_set(frame)
+            depsgraph = context.evaluated_depsgraph_get()
+            depsgraph.update()
+            for rig, bone_data in rig_driven.items():
+                eval_rig = rig.evaluated_get(depsgraph)
+                for bone_name, axes in bone_data.items():
+                    try:
+                        pb = eval_rig.pose.bones[bone_name]
+                    except KeyError:
+                        continue
+                    for axis in axes:
+                        val = pb.rotation_euler[axis]
+                        samples[(rig, bone_name, axis)].append((frame, val))
+        context.scene.frame_set(original_frame)
 
-                    rig.select_set(True)
-                    context.view_layer.objects.active = rig
-
-                    coll_vis = []
-                    if bpy.app.version[0] >= 4:
-                        for bo_coll in rig.data.collections:
-                            coll_vis.append(bo_coll.is_visible)
-                            bo_coll.is_visible = True
-                    else:
-                        for l, layer in enumerate(rig.data.layers):
-                            coll_vis.append(rig.data.layers[l])
-                            rig.data.layers[l] = True
-
-                if bpy.app.version[0] >= 5:
-                    bo.select = True
-                else:
-                    bo.bone.select = True
-
-        bpy.ops.object.mode_set(mode="POSE")
-        b_types = {"POSE"}
-
-        for ob in bpy.context.selected_objects:
-            if ob.type != "ARMATURE":
-                ob.select_set(False)
-
-        if context.scene.use_preview_range:
-            try:
-                bpy.ops.nla.bake(
-                    frame_start=context.scene.frame_preview_start,
-                    frame_end=context.scene.frame_preview_end,
-                    step=1,
-                    clear_parents=False,
-                    clear_constraints=True,
-                    use_current_action=not self.sep_action,
-                    only_selected=True,
-                    visual_keying=True,
-                    clean_curves=True,
-                    bake_types=b_types,
-                )
-            except:
-                bpy.ops.nla.bake(
-                    frame_start=context.scene.frame_preview_start,
-                    frame_end=context.scene.frame_preview_end,
-                    step=1,
-                    clear_parents=False,
-                    clear_constraints=True,
-                    use_current_action=not self.sep_action,
-                    only_selected=True,
-                    visual_keying=True,
-                    bake_types=b_types,
-                )
-        else:
-            try:
-                bpy.ops.nla.bake(
-                    frame_start=context.scene.frame_start,
-                    frame_end=context.scene.frame_end,
-                    step=1,
-                    clear_parents=False,
-                    clear_constraints=True,
-                    use_current_action=not self.sep_action,
-                    only_selected=True,
-                    visual_keying=True,
-                    clean_curves=True,
-                    bake_types=b_types,
-                )
-            except:
-                bpy.ops.nla.bake(
-                    frame_start=context.scene.frame_start,
-                    frame_end=context.scene.frame_end,
-                    step=1,
-                    clear_parents=False,
-                    clear_constraints=True,
-                    use_current_action=not self.sep_action,
-                    only_selected=True,
-                    visual_keying=True,
-                    bake_types=b_types,
-                )
-
-        bpy.ops.object.mode_set(mode="POSE")
-
+        # Remove sway drivers to prevent re-evaluation during keyframe insertion
         for chain in sim_chains:
             for b_dat in chain:
                 rig = b_dat[0]
                 pb = rig.pose.bones[b_dat[1]]
+                pb.flow_update = False
                 clear_sway_drivers(rig, pb)
+
+        # Insert baked keyframes
+        for (rig, bone_name, axis), frame_vals in samples.items():
+            if len(frame_vals) == 0:
+                continue
+
+            adt = rig.animation_data_create()
+
+            if self.sep_action:
+                action = bpy.data.actions.new(name=rig.name + "_SwayBaked")
+                adt.action = action
+            else:
+                if adt.action is None:
+                    action = bpy.data.actions.new(name=rig.name + "_Action")
+                    adt.action = action
+                else:
+                    action = adt.action
+
+            bone_path = 'pose.bones["%s"]' % bone_name
+            data_path = bone_path + ".rotation_euler"
+
+            if bpy.app.version[0] >= 5:
+                fcu = action.fcurve_ensure_for_datablock(rig, data_path, index=axis)
+            else:
+                fcu = action.fcurves.find(data_path, index=axis)
+                if fcu is None:
+                    fcu = action.fcurves.new(data_path, index=axis)
+
+            while len(fcu.keyframe_points) > 0:
+                fcu.keyframe_points.remove(fcu.keyframe_points[0])
+
+            fcu.keyframe_points.add(len(frame_vals))
+            for i, (frame, val) in enumerate(frame_vals):
+                fcu.keyframe_points[i].co = (frame, val)
+                fcu.keyframe_points[i].interpolation = 'LINEAR'
+
+        # Clean up sway properties
+        for chain in sim_chains:
+            for b_dat in chain:
+                pb = b_dat[0].pose.bones[b_dat[1]]
                 pb.flow_has_sway = False
                 pb.flow_end_of_chain = False
                 pb.flow_chain_id = ""
+                pb.flow_update = True
 
         return {"FINISHED"}
 
