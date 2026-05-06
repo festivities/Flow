@@ -1,4 +1,4 @@
-from .functions import get_bone_chains, get_selected_bone_chains, clear_sway_drivers, create_sway_chains, get_preset_data, apply_preset
+from .functions import get_bone_chains, get_selected_bone_chains, clear_sway_drivers, create_sway_chains, get_preset_data, apply_preset, bone_has_custom_sway_settings
 from bpy.types import Operator
 import bpy
 import os
@@ -18,6 +18,7 @@ class FLOW_OT_add_sway(Operator):
     bl_description = "Adds procedural sine-wave sway animation to selected bone chains using drivers"
 
     def execute(self, context):
+        prefs = context.preferences.addons[__package__].preferences
         sim_chains = get_bone_chains(context.selected_pose_bones)
 
         if len(sim_chains) == 0:
@@ -27,11 +28,31 @@ class FLOW_OT_add_sway(Operator):
             )
             return {"CANCELLED"}
 
+        preset_chains = []
+        for chain in sim_chains:
+            chain_has_history = False
+            for rig, bone_name in chain:
+                if bone_has_custom_sway_settings(rig.pose.bones[bone_name]):
+                    chain_has_history = True
+                    break
+
+            if prefs.keep_existing_settings:
+                if chain_has_history == False:
+                    preset_chains.append(chain)
+            else:
+                preset_chains.append(chain)
+
         create_sway_chains(sim_chains)
 
-        preset_data = get_preset_data()
-        if preset_data is not None:
-            apply_preset(preset_data, context.active_pose_bone)
+        if len(preset_chains) > 0:
+            preset_data = get_preset_data()
+            if preset_data is not None:
+                apply_preset(
+                    preset_data,
+                    context.active_pose_bone,
+                    sim_chains=preset_chains,
+                    keep_existing_settings=False,
+                )
 
         return {"FINISHED"}
 

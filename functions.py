@@ -1,4 +1,5 @@
 import bpy
+import math
 import os
 import json
 import random
@@ -459,6 +460,39 @@ def rebuild_sway_drivers(bone):
     return
 
 
+def bone_has_custom_sway_settings(pb):
+    """Return True when a pose bone has sway settings that differ from the defaults."""
+    sway_props = (
+        "flow_sw_amplitude",
+        "flow_sw_frequency",
+        "flow_sw_delay",
+        "flow_sw_offset",
+        "flow_sw_falloff_start",
+        "flow_sw_speed",
+        "flow_sw_random_seed",
+        "flow_sw_roll",
+        "flow_sw_sub_amplitude",
+        "flow_sw_sub_frequency",
+        "flow_sw_sub_delay",
+        "flow_sw_sub_offset",
+        "flow_sw_sub_falloff_start",
+    )
+
+    for prop_name in sway_props:
+        prop = pb.bl_rna.properties[prop_name]
+        current_value = getattr(pb, prop_name)
+        default_value = prop.default
+
+        if isinstance(current_value, float):
+            if not math.isclose(current_value, default_value, rel_tol=1e-06, abs_tol=1e-06):
+                return True
+        else:
+            if current_value != default_value:
+                return True
+
+    return False
+
+
 #
 # PRESET FUNCTIONS
 #
@@ -520,18 +554,22 @@ def get_preset_data(preset_override=None):
     return None
 
 
-def apply_preset(preset_data, bone):
+def apply_preset(preset_data, bone, sim_chains=None, keep_existing_settings=None):
 
     prefs = bpy.context.preferences.addons[__package__].preferences
 
-    if prefs.apply_to_all_chains:
-        sim_chains = get_selected_bone_chains(bpy.context.selected_pose_bones)
-    else:
-        sim_chains = get_selected_bone_chains(bpy.context.selected_pose_bones_from_active_object, only_active=True)
+    if keep_existing_settings is None:
+        keep_existing_settings = prefs.keep_existing_settings
+
+    if sim_chains is None:
+        if prefs.apply_to_all_chains:
+            sim_chains = get_selected_bone_chains(bpy.context.selected_pose_bones)
+        else:
+            sim_chains = get_selected_bone_chains(bpy.context.selected_pose_bones_from_active_object, only_active=True)
 
     for s in preset_data.keys():
 
-        if prefs.keep_existing_settings and s in bone:
+        if keep_existing_settings and s in bone:
             continue
 
         if isinstance(preset_data[s], list) == False:

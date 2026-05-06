@@ -148,7 +148,7 @@ class FlowPreferences(AddonPreferences):
     )
 
     keep_existing_settings: bpy.props.BoolProperty(
-        default=False,
+        default=True,
         name="Keep Existing Settings",
         description="When readding a physics type to bones it will keep the previously set settings. Otherwise it will load in the active preset"
     )
