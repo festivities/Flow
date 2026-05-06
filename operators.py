@@ -517,6 +517,83 @@ class FLOW_OT_adjust_offset(Operator):
         return {"FINISHED"}
 
 
+class FLOW_OT_adjust_roll(Operator):
+    bl_idname = "flow.adjust_roll"
+    bl_label = "Adjust Roll"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+    bl_description = "Add or set the y-axis sway roll of selected sway chains"
+
+    value: bpy.props.FloatProperty(
+        name="Value",
+        default=0.0,
+    )
+
+    mode: bpy.props.EnumProperty(
+        name="Mode",
+        items=[
+            ('ADD', "Add", "Add value to current roll"),
+            ('SET', "Set", "Set roll to the given value"),
+        ],
+        default='ADD',
+    )
+
+    def execute(self, context):
+        sim_chains = get_selected_bone_chains(context.selected_pose_bones)
+
+        if len(sim_chains) == 0:
+            self.report({"ERROR"}, "No sway chains selected")
+            return {"CANCELLED"}
+
+        for chain in sim_chains:
+            for b_dat in chain:
+                rig = b_dat[0]
+                pb = rig.pose.bones[b_dat[1]]
+
+                if self.mode == 'SET':
+                    new_val = self.value
+                else:
+                    new_val = pb.flow_sw_roll + self.value
+
+                pb.flow_update = False
+                pb.flow_sw_roll = new_val
+                pb.flow_update = True
+
+        return {"FINISHED"}
+
+
+class FLOW_OT_flip_roll(Operator):
+    bl_idname = "flow.flip_roll"
+    bl_label = "Flip Roll"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+    bl_description = "Flip the y-axis sway roll by 180 degrees (subtract if positive, add if negative)"
+
+    def execute(self, context):
+        sim_chains = get_selected_bone_chains(context.selected_pose_bones)
+
+        if len(sim_chains) == 0:
+            self.report({"ERROR"}, "No sway chains selected")
+            return {"CANCELLED"}
+
+        for chain in sim_chains:
+            for b_dat in chain:
+                rig = b_dat[0]
+                pb = rig.pose.bones[b_dat[1]]
+
+                current = pb.flow_sw_roll
+                if current > 0:
+                    new_val = current - 180.0
+                elif current < 0:
+                    new_val = current + 180.0
+                else:
+                    new_val = current + 180.0
+
+                pb.flow_update = False
+                pb.flow_sw_roll = new_val
+                pb.flow_update = True
+
+        return {"FINISHED"}
+
+
 #
 # REGISTRATION
 #
@@ -531,6 +608,8 @@ _classes = [
     FLOW_OT_apply_preset,
     FLOW_OT_batch_offset,
     FLOW_OT_adjust_offset,
+    FLOW_OT_adjust_roll,
+    FLOW_OT_flip_roll,
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

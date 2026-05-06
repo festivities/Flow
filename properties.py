@@ -179,6 +179,14 @@ class FlowPreferences(AddonPreferences):
         description="Value to add, subtract, or set the offset of selected sway chains",
     )
 
+    flow_roll_adjust_value: bpy.props.FloatProperty(
+        default=45.0,
+        min=-360.0,
+        max=360.0,
+        name="Roll Adjust",
+        description="Degrees to add, subtract, or set the y-axis roll of selected sway chains",
+    )
+
     flow_show_sway_visualizer: bpy.props.BoolProperty(
         default=False,
         name="Show Sway Direction",
