@@ -255,7 +255,7 @@ def register():
         max=90.0,
         description="Maximum rotation angle in degrees for the main axis sway wave",
         update=update_sw_amplitude,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -265,7 +265,7 @@ def register():
         max=10.0,
         description="Number of complete wave cycles per second",
         update=update_sw_frequency,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -275,7 +275,7 @@ def register():
         max=48.0,
         description="Frame offset between bones in the chain, creating the cascading sway effect (in frames)",
         update=update_sw_delay,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -285,7 +285,7 @@ def register():
         max=100.0,
         description="Frame offset for the chain's starting position in the wave cycle",
         update=update_sw_offset,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -295,7 +295,7 @@ def register():
         max=1.0,
         description="Amplitude factor at the chain root (0 = no motion at root, 1 = full motion everywhere)",
         update=update_sw_falloff_start,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -325,7 +325,7 @@ def register():
         max=360.0,
         description="Per-bone phase offset in degrees to curve the sway direction along the chain",
         update=update_sw_roll,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -335,7 +335,7 @@ def register():
         max=90.0,
         description="Maximum rotation angle in degrees for the sub axis sway wave",
         update=update_sw_sub_amplitude,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -345,7 +345,7 @@ def register():
         max=20.0,
         description="Number of complete Z-axis wave cycles per second",
         update=update_sw_sub_frequency,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -355,7 +355,7 @@ def register():
         max=48.0,
         description="Frame offset between bones for the Z-axis wave cascade (in frames)",
         update=update_sw_sub_delay,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -365,7 +365,7 @@ def register():
         max=100.0,
         description="Frame offset for the Z-axis wave starting position",
         update=update_sw_sub_offset,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -375,7 +375,7 @@ def register():
         max=1.0,
         description="Z-axis wave amplitude factor at the chain root",
         update=update_sw_sub_falloff_start,
-        options={"LIBRARY_EDITABLE"},
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
