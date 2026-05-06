@@ -126,27 +126,11 @@ def update_sway_visualizer(self, context):
 #
 
 
-_sw_presets_cache = []
-
 def get_sw_presets(self, context):
-    global _sw_presets_cache
     preset_fp = Path(os.path.dirname(__file__)) / "presets" / "default_presets.json"
     user_preset_fp = Path(os.path.dirname(__file__)) / "presets" / "user_presets.json"
 
-    items = load_presets(preset_fp) + load_presets(user_preset_fp)
-    
-    # Ensure DEFAULTSWAY is the first item so Blender picks it automatically
-    default_item = None
-    for i, item in enumerate(items):
-        if item[0] == "DEFAULTSWAY":
-            default_item = items.pop(i)
-            break
-            
-    if default_item:
-        items.insert(0, default_item)
-
-    _sw_presets_cache = items
-    return _sw_presets_cache
+    return load_presets(preset_fp) + load_presets(user_preset_fp)
 
 
 class FlowPreferences(AddonPreferences):
@@ -155,6 +139,7 @@ class FlowPreferences(AddonPreferences):
     sw_presets: bpy.props.EnumProperty(
         name="Sway Chain Presets",
         items=get_sw_presets,
+        default='DEFAULTSWAY',
     )
 
     apply_to_all_chains: bpy.props.BoolProperty(
