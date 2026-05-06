@@ -110,6 +110,9 @@ class FLOW_PT_main_panel(Panel):
             if expanded:
 
                 row = boxx.row(align=True)
+                row.prop(prefs, "flow_show_sway_visualizer")
+
+                row = boxx.row(align=True)
                 row.prop(pb, "flow_sw_roll", text="Y-Axis Roll")
 
                 row = boxx.row(align=True)

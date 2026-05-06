@@ -108,6 +108,19 @@ def update_sw_sub_falloff_start(self, context):
     return
 
 
+def update_sway_visualizer(self, context):
+    from .visualizer import enable_sway_visualizer, disable_sway_visualizer
+    if self.flow_show_sway_visualizer:
+        enable_sway_visualizer()
+    else:
+        disable_sway_visualizer()
+    if context.screen:
+        for area in context.screen.areas:
+            if area.type == 'VIEW_3D':
+                area.tag_redraw()
+    return
+
+
 #
 # PREFERENCES
 #
@@ -162,8 +175,15 @@ class FlowPreferences(AddonPreferences):
         default=12.0,
         min=-100.0,
         max=100.0,
-        name="Batch Offset (Increment / Decrement / Set)",
+        name="Adjust (frames)",
         description="Value to add, subtract, or set the offset of selected sway chains",
+    )
+
+    flow_show_sway_visualizer: bpy.props.BoolProperty(
+        default=False,
+        name="Show Sway Direction",
+        description="Show arrows in the 3D viewport indicating the sway direction for each bone",
+        update=update_sway_visualizer,
     )
 
     def draw(self, context):
