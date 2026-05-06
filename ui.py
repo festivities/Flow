@@ -118,6 +118,13 @@ class FLOW_PT_main_panel(Panel):
                 row = boxx.row(align=True)
                 row.prop(pb, "flow_sw_speed", text="Speed Multiplier")
 
+                row = boxx.row(align=True)
+                row.prop(prefs, "flow_batch_offset_increment", text="Batch Offset")
+                op = row.operator("flow.batch_offset", text="Main")
+                op.mode = 'MAIN'
+                op = row.operator("flow.batch_offset", text="Sub")
+                op.mode = 'SUB'
+
 
 _classes = [
     FLOW_PT_main_panel,

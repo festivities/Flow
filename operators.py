@@ -388,6 +388,61 @@ class FLOW_OT_apply_preset(Operator):
         return {"FINISHED"}
 
 
+class FLOW_OT_batch_offset(Operator):
+    bl_idname = "flow.batch_offset"
+    bl_label = "Batch Offset"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+    bl_description = "Apply an incremental offset to all selected sway chains"
+
+    mode: bpy.props.EnumProperty(
+        name="Mode",
+        items=[
+            ('MAIN', "Main Axis", "Apply offset to main axis wave"),
+            ('SUB', "Sub Axis", "Apply offset to sub axis wave"),
+        ],
+        default='MAIN',
+    )
+
+    def execute(self, context):
+        prefs = context.preferences.addons[__package__].preferences
+        increment = prefs.flow_batch_offset_increment
+
+        chains, bones = [], []
+        for pb in context.selected_pose_bones:
+            if not pb.flow_has_sway:
+                continue
+            if pb.flow_chain_id not in chains:
+                chains.append(pb.flow_chain_id)
+                bones.append(pb)
+
+        if len(chains) == 0:
+            self.report({"ERROR"}, "No sway chains selected")
+            return {"CANCELLED"}
+
+        paired = sorted(zip(chains, bones), key=lambda x: x[0])
+        chains, bones = zip(*paired)
+
+        attr = "flow_sw_sub_offset" if self.mode == 'SUB' else "flow_sw_offset"
+
+        skip_rigs = []
+        for i, pb in enumerate(bones):
+            if pb.id_data in skip_rigs:
+                continue
+            skip_rigs.append(pb.id_data)
+
+            for c_pb in pb.id_data.pose.bones:
+                if c_pb.flow_chain_id in chains and c_pb.flow_has_sway:
+                    try:
+                        chain_idx = chains.index(c_pb.flow_chain_id)
+                    except ValueError:
+                        continue
+                    c_pb.flow_update = False
+                    setattr(c_pb, attr, chain_idx * increment)
+                    c_pb.flow_update = True
+
+        return {"FINISHED"}
+
+
 #
 # REGISTRATION
 #
@@ -400,6 +455,7 @@ _classes = [
     FLOW_OT_save_preset,
     FLOW_OT_delete_preset,
     FLOW_OT_apply_preset,
+    FLOW_OT_batch_offset,
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

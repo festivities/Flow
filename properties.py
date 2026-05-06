@@ -150,6 +150,14 @@ class FlowPreferences(AddonPreferences):
         default=True,
     )
 
+    flow_batch_offset_increment: bpy.props.FloatProperty(
+        default=24.0,
+        min=0.0,
+        max=100.0,
+        name="Increment (frames)",
+        description="Incremental offset value applied to each selected chain when using batch offset",
+    )
+
     def draw(self, context):
         layout = self.layout
         column = layout.column(align=True)
