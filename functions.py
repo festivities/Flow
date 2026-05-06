@@ -127,6 +127,14 @@ def get_selected_bone_chains(bones, only_active=False):
 
     return chains
 
+def get_root_from_sway_bone(pb):
+    chain = get_selected_bone_chains([pb])
+    root = None
+    if chain:
+        rig, bone_name = chain[0][0]
+        root = rig.pose.bones[bone_name]
+
+    return root
 
 #
 # SWAY DRIVER FUNCTIONS

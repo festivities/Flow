@@ -1,4 +1,4 @@
-from .functions import get_selected_bone_chains
+from .functions import get_root_from_sway_bone, get_selected_bone_chains
 from bpy.types import Panel
 import bpy
 
@@ -47,6 +47,8 @@ class FLOW_PT_main_panel(Panel):
             row.operator("flow.add_sway", text="Add Sway Chain")
             row.scale_y = 2.5
         else:
+            root = get_root_from_sway_bone(pb)
+
             box = layout.box()
 
             box = layout.box()
@@ -74,37 +76,37 @@ class FLOW_PT_main_panel(Panel):
             if expanded:
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_amplitude", text="Amplitude")
+                row.prop(root, "flow_sw_amplitude", text="Amplitude")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_frequency", text="Frequency (Hz)")
+                row.prop(root, "flow_sw_frequency", text="Frequency (Hz)")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_delay", text="Delay")
+                row.prop(root, "flow_sw_delay", text="Delay")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_offset", text="Offset (frames)")
+                row.prop(root, "flow_sw_offset", text="Offset (frames)")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_falloff_start", text="Root Falloff")
+                row.prop(root, "flow_sw_falloff_start", text="Root Falloff")
 
             boxx, expanded = draw_subpanel(box, prefs, "sw_subwave_menu", "Sub Axis Wave", "MOD_WAVE")
             if expanded:
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_amplitude", text="Amplitude")
+                row.prop(root, "flow_sw_sub_amplitude", text="Amplitude")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_frequency", text="Frequency (Hz)")
+                row.prop(root, "flow_sw_sub_frequency", text="Frequency (Hz)")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_delay", text="Delay")
+                row.prop(root, "flow_sw_sub_delay", text="Delay")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_offset", text="Offset (frames)")
+                row.prop(root, "flow_sw_sub_offset", text="Offset (frames)")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_sub_falloff_start", text="Root Falloff")
+                row.prop(root, "flow_sw_sub_falloff_start", text="Root Falloff")
 
             boxx, expanded = draw_subpanel(box, prefs, "sw_global_menu", "General (Per-chain)", "SETTINGS")
             if expanded:
@@ -113,7 +115,7 @@ class FLOW_PT_main_panel(Panel):
                 row.prop(prefs, "flow_show_sway_visualizer")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_roll", text="Y-Axis Roll")
+                row.prop(root, "flow_sw_roll", text="Y-Axis Roll")
 
                 row = boxx.row(align=True)
                 row.prop(prefs, "flow_roll_adjust_value")
@@ -136,10 +138,10 @@ class FLOW_PT_main_panel(Panel):
                 op.value = prefs.flow_roll_adjust_value
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_random_seed", text="Random Seed")
+                row.prop(root, "flow_sw_random_seed", text="Random Seed")
 
                 row = boxx.row(align=True)
-                row.prop(pb, "flow_sw_speed", text="Speed Multiplier")
+                row.prop(root, "flow_sw_speed", text="Speed Multiplier")
 
                 row = boxx.row(align=True)
                 row.prop(prefs, "flow_batch_offset_increment", text="Batch Offset")
