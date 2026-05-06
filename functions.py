@@ -162,6 +162,7 @@ def _ensure_sway_target(rig, pb):
 
     sway_target.matrix_world = rig.matrix_world @ pb.bone.matrix_local
     sway_target.rotation_mode = 'XYZ'
+    sway_target.rotation_euler = (0, 0, 0)
 
     return sway_target
 
