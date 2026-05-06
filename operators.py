@@ -264,9 +264,7 @@ class FLOW_OT_save_preset(Operator):
         p_dat["Description"] = self.description
         s_dat = {}
 
-        user_preset_fp = Path(os.path.dirname(__file__)) / "user_created_presets"
-        if os.path.exists(user_preset_fp) == False:
-            os.makedirs(bpy.path.abspath(str(user_preset_fp)))
+
 
         sim_chains = get_selected_bone_chains(context.selected_pose_bones_from_active_object, only_active=True)
         for chain in sim_chains:
@@ -283,7 +281,7 @@ class FLOW_OT_save_preset(Operator):
             s_dat["flow_sw_sub_delay"] = pb.flow_sw_sub_delay
             s_dat["flow_sw_sub_falloff_start"] = pb.flow_sw_sub_falloff_start
 
-            preset_fp = Path(os.path.dirname(__file__)) / "user_created_presets" / "sway_chain_presets.json"
+            preset_fp = Path(os.path.dirname(__file__)) / "presets" / "user_presets.json"
 
             p_dat["Settings"] = s_dat
 
@@ -326,7 +324,7 @@ class FLOW_OT_delete_preset(Operator):
     def execute(self, context):
         prefs = context.preferences.addons[__package__].preferences
 
-        preset_fp = Path(os.path.dirname(__file__)) / "user_created_presets" / "sway_chain_presets.json"
+        preset_fp = Path(os.path.dirname(__file__)) / "presets" / "user_presets.json"
         presets_enum = prefs.sw_presets
 
         presets_data = {}

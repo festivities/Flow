@@ -127,8 +127,8 @@ def update_sway_visualizer(self, context):
 
 
 def get_sw_presets(self, context):
-    preset_fp = Path(os.path.dirname(__file__)) / "presets" / "sway_chain_presets.json"
-    user_preset_fp = Path(os.path.dirname(__file__)) / "user_created_presets" / "sway_chain_presets.json"
+    preset_fp = Path(os.path.dirname(__file__)) / "presets" / "default_presets.json"
+    user_preset_fp = Path(os.path.dirname(__file__)) / "presets" / "user_presets.json"
 
     return load_presets(preset_fp) + load_presets(user_preset_fp)
 

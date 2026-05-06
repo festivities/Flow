@@ -487,8 +487,8 @@ def load_presets(preset_fp):
 def get_preset_data(preset_override=None):
     prefs = bpy.context.preferences.addons[__package__].preferences
 
-    preset_fp = Path(os.path.dirname(__file__)) / "presets" / "sway_chain_presets.json"
-    user_preset_fp = Path(os.path.dirname(__file__)) / "user_created_presets" / "sway_chain_presets.json"
+    preset_fp = Path(os.path.dirname(__file__)) / "presets" / "default_presets.json"
+    user_preset_fp = Path(os.path.dirname(__file__)) / "presets" / "user_presets.json"
     presets_enum = prefs.sw_presets
 
     pb = bpy.context.active_pose_bone
