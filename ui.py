@@ -108,7 +108,7 @@ class FLOW_PT_main_panel(Panel):
                 row = boxx.row(align=True)
                 row.prop(root, "flow_sw_sub_falloff_start", text="Root Falloff")
 
-            boxx, expanded = draw_subpanel(box, prefs, "sw_global_menu", "General (Per-chain)", "SETTINGS")
+            boxx, expanded = draw_subpanel(box, prefs, "sw_global_menu", "General", "SETTINGS")
             if expanded:
 
                 row = boxx.row(align=True)

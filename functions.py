@@ -335,7 +335,7 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     var_rl.type = 'SINGLE_PROP'
     var_rl.targets[0].id_type = 'OBJECT'
     var_rl.targets[0].id = rig
-    var_rl.targets[0].data_path = pb.path_from_id() + '.flow_sw_roll'
+    var_rl.targets[0].data_path = root_path + '.flow_sw_roll'
 
     fps = bpy.context.scene.render.fps
 
