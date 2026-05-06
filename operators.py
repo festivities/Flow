@@ -88,26 +88,35 @@ class FLOW_OT_bake_sway(Operator):
             )
             return {"CANCELLED"}
 
-        # Collect which axes are driven for each bone in each rig
-        # {rig: {bone_name: [axis_index, ...]}}
+        # Collect the rotation channel layout for each bone in each rig.
+        # {rig: {bone_name: {rotation_mode, data_path, channel_count, frame_values}}}
         rig_driven = {}
         for chain in sim_chains:
-            driven_axes = [0, 2]
-
             for b_dat in chain:
                 rig = b_dat[0]
                 bone_name = b_dat[1]
                 if rig not in rig_driven:
                     rig_driven[rig] = {}
-                rig_driven[rig][bone_name] = driven_axes
+                if bone_name in rig_driven[rig]:
+                    continue
 
-        # Sample driver-evaluated values frame by frame
-        # {(rig, bone_name, axis_index): [(frame, value), ...]}
-        samples = {}
-        for rig, bone_data in rig_driven.items():
-            for bone_name, axes in bone_data.items():
-                for axis in axes:
-                    samples[(rig, bone_name, axis)] = []
+                pb = rig.pose.bones[bone_name]
+                if pb.rotation_mode == 'QUATERNION':
+                    data_path = 'pose.bones["%s"].rotation_quaternion' % bone_name
+                    channel_count = 4
+                elif pb.rotation_mode == 'AXIS_ANGLE':
+                    data_path = 'pose.bones["%s"].rotation_axis_angle' % bone_name
+                    channel_count = 4
+                else:
+                    data_path = 'pose.bones["%s"].rotation_euler' % bone_name
+                    channel_count = 3
+
+                rig_driven[rig][bone_name] = {
+                    "rotation_mode": pb.rotation_mode,
+                    "data_path": data_path,
+                    "channel_count": channel_count,
+                    "frame_values": [],
+                }
 
         original_frame = context.scene.frame_current
         for frame in range(frame_start, frame_end + 1):
@@ -116,14 +125,39 @@ class FLOW_OT_bake_sway(Operator):
             depsgraph.update()
             for rig, bone_data in rig_driven.items():
                 eval_rig = rig.evaluated_get(depsgraph)
-                for bone_name, axes in bone_data.items():
+                for bone_name, sample_data in bone_data.items():
                     try:
                         pb = eval_rig.pose.bones[bone_name]
                     except KeyError:
                         continue
-                    for axis in axes:
-                        val = pb.rotation_euler[axis]
-                        samples[(rig, bone_name, axis)].append((frame, val))
+
+                    if pb.parent is not None:
+                        local_matrix = pb.bone.convert_local_to_pose(
+                            pb.matrix,
+                            pb.bone.matrix_local,
+                            parent_matrix=pb.parent.matrix,
+                            parent_matrix_local=pb.parent.bone.matrix_local,
+                            invert=True,
+                        )
+                    else:
+                        local_matrix = pb.bone.convert_local_to_pose(
+                            pb.matrix,
+                            pb.bone.matrix_local,
+                            invert=True,
+                        )
+
+                    if sample_data["rotation_mode"] == 'QUATERNION':
+                        quat = local_matrix.to_quaternion()
+                        values = (quat.w, quat.x, quat.y, quat.z)
+                    elif sample_data["rotation_mode"] == 'AXIS_ANGLE':
+                        quat = local_matrix.to_quaternion()
+                        axis, angle = quat.to_axis_angle()
+                        values = (angle, axis.x, axis.y, axis.z)
+                    else:
+                        euler = local_matrix.to_euler(sample_data["rotation_mode"])
+                        values = (euler.x, euler.y, euler.z)
+
+                    sample_data["frame_values"].append((frame, values))
         context.scene.frame_set(original_frame)
 
         # Remove sway drivers to prevent re-evaluation during keyframe insertion
@@ -135,40 +169,42 @@ class FLOW_OT_bake_sway(Operator):
                 clear_sway_drivers(rig, pb)
 
         # Insert baked keyframes
-        for (rig, bone_name, axis), frame_vals in samples.items():
-            if len(frame_vals) == 0:
-                continue
+        for rig, bone_data in rig_driven.items():
+            for bone_name, sample_data in bone_data.items():
+                frame_vals = sample_data["frame_values"]
+                if len(frame_vals) == 0:
+                    continue
 
-            adt = rig.animation_data_create()
+                adt = rig.animation_data_create()
 
-            if self.sep_action:
-                action = bpy.data.actions.new(name=rig.name + "_SwayBaked")
-                adt.action = action
-            else:
-                if adt.action is None:
-                    action = bpy.data.actions.new(name=rig.name + "_Action")
+                if self.sep_action:
+                    action = bpy.data.actions.new(name=rig.name + "_SwayBaked")
                     adt.action = action
                 else:
-                    action = adt.action
+                    if adt.action is None:
+                        action = bpy.data.actions.new(name=rig.name + "_Action")
+                        adt.action = action
+                    else:
+                        action = adt.action
 
-            bone_path = 'pose.bones["%s"]' % bone_name
-            data_path = bone_path + ".rotation_euler"
+                data_path = sample_data["data_path"]
 
-            if bpy.app.version[0] >= 5:
-                fcu = action.fcurve_ensure_for_datablock(rig, data_path, index=axis)
-            else:
-                fcu = action.fcurves.find(data_path, index=axis)
-                if fcu is None:
-                    fcu = action.fcurves.new(data_path, index=axis)
+                for axis in range(sample_data["channel_count"]):
+                    if bpy.app.version[0] >= 5:
+                        fcu = action.fcurve_ensure_for_datablock(rig, data_path, index=axis)
+                    else:
+                        fcu = action.fcurves.find(data_path, index=axis)
+                        if fcu is None:
+                            fcu = action.fcurves.new(data_path, index=axis)
 
-            while len(fcu.keyframe_points) > 0:
-                fcu.keyframe_points.remove(fcu.keyframe_points[0])
+                    while len(fcu.keyframe_points) > 0:
+                        fcu.keyframe_points.remove(fcu.keyframe_points[0])
 
-            fcu.keyframe_points.add(len(frame_vals))
-            for i, (frame, val) in enumerate(frame_vals):
-                fcu.keyframe_points[i].co = (frame, val)
-                fcu.keyframe_points[i].interpolation = 'LINEAR'
-
+                    fcu.keyframe_points.add(len(frame_vals))
+                    for i, (frame, values) in enumerate(frame_vals):
+                        fcu.keyframe_points[i].co = (frame, values[axis])
+                        fcu.keyframe_points[i].interpolation = 'LINEAR'
+                
         # Clean up sway properties
         for chain in sim_chains:
             for b_dat in chain:

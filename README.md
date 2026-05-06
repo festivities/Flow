@@ -41,7 +41,7 @@ This extension is confirmed to be compatible with the following Blender versions
 
 ## Known issues
 
-- There are noticeable discontinuities and visual jittering during preview. I have no idea why this is the case but baking the sway should eliminate all of it. 
+- There may be noticeable discontinuities and visual jittering during preview. I have no idea why this is the case but baking the sway should eliminate all of it.
 
 ## Support
 

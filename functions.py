@@ -132,8 +132,61 @@ def get_selected_bone_chains(bones, only_active=False):
 #
 
 
+def _get_sway_target_name(rig, pb):
+    return f"FLOW_SwayTarget_{rig.name}_{pb.name}"
+
+
+def _get_sway_constraint_name():
+    return "FLOW_Sway"
+
+
+def _ensure_sway_target(rig, pb):
+    target_name = _get_sway_target_name(rig, pb)
+    sway_target = bpy.data.objects.get(target_name)
+
+    if sway_target is None:
+        sway_target = bpy.data.objects.new(target_name, None)
+        sway_target.empty_display_type = "ARROWS"
+        sway_target.empty_display_size = 0.25
+        sway_target.hide_render = True
+        sway_target.hide_viewport = True
+
+        if len(rig.users_collection) > 0:
+            rig.users_collection[0].objects.link(sway_target)
+        else:
+            bpy.context.scene.collection.objects.link(sway_target)
+
+    if sway_target.parent != rig:
+        sway_target.parent = rig
+        sway_target.matrix_parent_inverse = rig.matrix_world.inverted()
+
+    sway_target.matrix_world = rig.matrix_world @ pb.bone.matrix_local
+    sway_target.rotation_mode = 'XYZ'
+
+    return sway_target
+
+
+def _ensure_sway_constraint(pb, sway_target):
+    con = pb.constraints.get(_get_sway_constraint_name())
+    if con is None:
+        con = pb.constraints.new("COPY_ROTATION")
+        con.name = _get_sway_constraint_name()
+
+    con.target = sway_target
+    con.subtarget = ""
+    con.use_x = True
+    con.use_y = True
+    con.use_z = True
+    con.mix_mode = "ADD"
+    con.owner_space = "LOCAL_WITH_PARENT"
+    con.target_space = "LOCAL"
+    con.influence = 1.0
+
+    return con
+
+
 def clear_sway_drivers(rig, pb):
-    """Remove sway chain drivers from a pose bone's rotation channels."""
+    """Remove sway chain drivers and helper constraints from a pose bone."""
     bone_path = pb.path_from_id()
     if rig.animation_data:
         remove_list = []
@@ -150,15 +203,18 @@ def clear_sway_drivers(rig, pb):
         for drv in remove_list:
             rig.animation_data.drivers.remove(drv)
 
+    sway_con = pb.constraints.get(_get_sway_constraint_name())
+    if sway_con is not None:
+        pb.constraints.remove(sway_con)
 
-def _add_sway_driver(rig, pb, axis_index, bone_index, total_bones, is_sub=False):
-    """Add a single sway driver to a bone's rotation channel."""
-    bone_path = pb.path_from_id()
-    data_path = bone_path + ".rotation_euler"
+    sway_target = bpy.data.objects.get(_get_sway_target_name(rig, pb))
+    if sway_target is not None:
+        bpy.data.objects.remove(sway_target, do_unlink=True)
 
-    pb.rotation_mode = 'XYZ'
 
-    fc = rig.driver_add(data_path, axis_index)
+def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, is_sub=False):
+    """Add a single sway driver to the hidden helper target."""
+    fc = sway_target.driver_add("rotation_euler", axis_index)
     drv = fc.driver
     drv.type = 'SCRIPTED'
 
@@ -321,10 +377,14 @@ def create_sway_chains(chains):
             rig = c_dat[0]
             bone = rig.pose.bones[c_dat[1]]
 
+            clear_sway_drivers(rig, bone)
+            sway_target = _ensure_sway_target(rig, bone)
+
             bone.flow_has_sway = True
             bone.flow_chain_id = num
             bone.flow_end_of_chain = cc == 0
-            bone.rotation_mode = 'XYZ'
+
+            _ensure_sway_constraint(bone, sway_target)
 
         root_bone = chain[-1][0].pose.bones[chain[-1][1]]
 
@@ -334,12 +394,16 @@ def create_sway_chains(chains):
         for cc, c_dat in enumerate(chain[::-1]):
             rig = c_dat[0]
             bone = rig.pose.bones[c_dat[1]]
+            sway_target = bpy.data.objects.get(_get_sway_target_name(rig, bone))
+
+            if sway_target is None:
+                sway_target = _ensure_sway_target(rig, bone)
 
             bone_index = cc
 
-            _add_sway_driver(rig, bone, 0, bone_index, total_bones, is_sub=False)
+            _add_sway_driver(rig, bone, sway_target, 0, bone_index, total_bones, is_sub=False)
 
-            _add_sway_driver(rig, bone, 2, bone_index, total_bones, is_sub=True)
+            _add_sway_driver(rig, bone, sway_target, 2, bone_index, total_bones, is_sub=True)
 
     return
 
@@ -386,8 +450,10 @@ def rebuild_sway_drivers(bone):
 
     for cc, pb in enumerate(ordered):
         clear_sway_drivers(rig, pb)
-        _add_sway_driver(rig, pb, 0, cc, total_bones, is_sub=False)
-        _add_sway_driver(rig, pb, 2, cc, total_bones, is_sub=True)
+        sway_target = _ensure_sway_target(rig, pb)
+        _ensure_sway_constraint(pb, sway_target)
+        _add_sway_driver(rig, pb, sway_target, 0, cc, total_bones, is_sub=False)
+        _add_sway_driver(rig, pb, sway_target, 2, cc, total_bones, is_sub=True)
 
     return
 
