@@ -125,6 +125,31 @@ class FLOW_PT_main_panel(Panel):
                 op = row.operator("flow.batch_offset", text="Sub")
                 op.mode = 'SUB'
 
+                row = boxx.row(align=True)
+                row.prop(prefs, "flow_offset_adjust_value")
+
+                row = boxx.row(align=True)
+                op = row.operator("flow.adjust_offset", text="+ Main")
+                op.mode = 'ADD'
+                op.target = 'MAIN'
+                op = row.operator("flow.adjust_offset", text="- Main")
+                op.mode = 'SUBTRACT'
+                op.target = 'MAIN'
+                op = row.operator("flow.adjust_offset", text="= Main")
+                op.mode = 'SET'
+                op.target = 'MAIN'
+
+                row = boxx.row(align=True)
+                op = row.operator("flow.adjust_offset", text="+ Sub")
+                op.mode = 'ADD'
+                op.target = 'SUB'
+                op = row.operator("flow.adjust_offset", text="- Sub")
+                op.mode = 'SUBTRACT'
+                op.target = 'SUB'
+                op = row.operator("flow.adjust_offset", text="= Sub")
+                op.mode = 'SET'
+                op.target = 'SUB'
+
 
 _classes = [
     FLOW_PT_main_panel,

@@ -158,6 +158,14 @@ class FlowPreferences(AddonPreferences):
         description="Incremental offset value applied to each selected chain when using batch offset",
     )
 
+    flow_offset_adjust_value: bpy.props.FloatProperty(
+        default=12.0,
+        min=-100.0,
+        max=100.0,
+        name="Batch Offset (Increment / Decrement / Set)",
+        description="Value to add, subtract, or set the offset of selected sway chains",
+    )
+
     def draw(self, context):
         layout = self.layout
         column = layout.column(align=True)
