@@ -1,6 +1,7 @@
 <br>
 <p align="center">
-    <a href="https://github.com/festivities/Flow"><img src="https://b.catgirlsare.sexy/Gqan9VpHMUXt.gif" alt="Flow"/></a>
+    <a href="https://github.com/festivities/Flow"><img src="https://raw.githubusercontent.com/hareru/public/73af35ea0cc3ccc30c1eccff1689c654aec3aeff/flow/B.gif" alt="Flow" width="500"/></a>
+    <a href="https://github.com/festivities/Flow"><img src="https://raw.githubusercontent.com/hareru/public/73af35ea0cc3ccc30c1eccff1689c654aec3aeff/flow/A.gif" alt="Flow" width="500"/></a>
 </p>
 
 ---

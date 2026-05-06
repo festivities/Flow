@@ -11,3 +11,6 @@ license = [
 ]
 tags = ["Animation"]
 website = "https://github.com/festivities/Flow"
+
+[permissions]
+files = "Read and save custom presets to a .JSON"
