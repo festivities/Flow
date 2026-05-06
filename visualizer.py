@@ -18,8 +18,10 @@ def _draw_sway_arrows():
             context.active_pose_bone):
         active_chain_id = context.active_pose_bone.flow_chain_id
 
-    active_lines = []
-    inactive_lines = []
+    active_main = []
+    active_sub = []
+    inactive_main = []
+    inactive_sub = []
 
     for ob in context.scene.objects:
         if ob.type != 'ARMATURE':
@@ -41,43 +43,45 @@ def _draw_sway_arrows():
             bone_z = (mat_world_rot @ pb.z_axis).normalized()
 
             roll_rad = math.radians(pb.flow_sw_roll)
-            sway_dir = (bone_x * math.cos(roll_rad) - bone_z * math.sin(roll_rad)).normalized()
+            sr = math.sin(roll_rad)
+            cr = math.cos(roll_rad)
+
+            main_dir = (bone_x * sr + bone_z * cr).normalized()
+            sub_dir = (bone_x * cr - bone_z * sr).normalized()
 
             shaft_len = pb.length * 0.5
             head_len = shaft_len * 0.3
 
-            tip = bone_head + sway_dir * shaft_len
-            base = bone_head
-
-            wing1 = tip - sway_dir * head_len + bone_y * head_len * 0.6
-            wing2 = tip - sway_dir * head_len - bone_y * head_len * 0.6
-
-            lines = [base, tip, tip, wing1, tip, wing2]
+            def make_arrow_lines(origin, direction):
+                tip = origin + direction * shaft_len
+                wing1 = tip - direction * head_len + bone_y * head_len * 0.6
+                wing2 = tip - direction * head_len - bone_y * head_len * 0.6
+                return [origin, tip, tip, wing1, tip, wing2]
 
             if is_active:
-                active_lines.extend(lines)
+                active_main.extend(make_arrow_lines(bone_head, main_dir))
+                active_sub.extend(make_arrow_lines(bone_head, sub_dir))
             else:
-                inactive_lines.extend(lines)
+                inactive_main.extend(make_arrow_lines(bone_head, main_dir))
+                inactive_sub.extend(make_arrow_lines(bone_head, sub_dir))
 
     shader = gpu.shader.from_builtin('POLYLINE_UNIFORM_COLOR')
-
     viewport_size = gpu.state.viewport_get()[2:]
 
-    if inactive_lines:
-        coords = [(v.x, v.y, v.z) for v in inactive_lines]
+    def draw_batch(lines, line_width, color):
+        if not lines:
+            return
+        coords = [(v.x, v.y, v.z) for v in lines]
         batch = batch_for_shader(shader, 'LINES', {"pos": coords})
         shader.uniform_float("viewportSize", viewport_size)
-        shader.uniform_float("lineWidth", 1.5)
-        shader.uniform_float("color", (0.25, 0.35, 0.3, 0.25))
+        shader.uniform_float("lineWidth", line_width)
+        shader.uniform_float("color", color)
         batch.draw(shader)
 
-    if active_lines:
-        coords = [(v.x, v.y, v.z) for v in active_lines]
-        batch = batch_for_shader(shader, 'LINES', {"pos": coords})
-        shader.uniform_float("viewportSize", viewport_size)
-        shader.uniform_float("lineWidth", 2.5)
-        shader.uniform_float("color", (0.2, 0.95, 0.6, 0.85))
-        batch.draw(shader)
+    draw_batch(inactive_main, 1.5, (0.15, 0.40, 0.30, 0.25))
+    draw_batch(inactive_sub, 1.2, (0.40, 0.25, 0.10, 0.25))
+    draw_batch(active_main, 2.5, (0.20, 0.95, 0.60, 0.85))
+    draw_batch(active_sub, 2.0, (0.95, 0.55, 0.20, 0.85))
 
 
 def enable_sway_visualizer():
