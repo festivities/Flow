@@ -122,13 +122,6 @@ class FLOW_PT_main_panel(Panel):
                 row.operator("flow.flip_roll", text="Flip 180\u00b0")
 
                 row = boxx.row(align=True)
-                for a in (22.5, 45.0, 90.0):
-                    op = row.operator("flow.adjust_roll", text="+{:.0f}\u00b0".format(a) if a == int(a) else "+{:.1f}\u00b0".format(a))
-                    op.value = a
-                    op = row.operator("flow.adjust_roll", text="-{:.0f}\u00b0".format(a) if a == int(a) else "-{:.1f}\u00b0".format(a))
-                    op.value = -a
-
-                row = boxx.row(align=True)
                 op = row.operator("flow.adjust_roll", text="+ Roll")
                 op.value = prefs.flow_roll_adjust_value
                 op = row.operator("flow.adjust_roll", text="- Roll")
@@ -136,6 +129,13 @@ class FLOW_PT_main_panel(Panel):
                 op = row.operator("flow.adjust_roll", text="= Roll")
                 op.mode = 'SET'
                 op.value = prefs.flow_roll_adjust_value
+
+                row = boxx.row(align=True)
+                for a in (22.5, 45.0, 90.0):
+                    op = row.operator("flow.adjust_roll", text="+{:.0f}\u00b0".format(a) if a == int(a) else "+{:.1f}\u00b0".format(a))
+                    op.value = a
+                    op = row.operator("flow.adjust_roll", text="-{:.0f}\u00b0".format(a) if a == int(a) else "-{:.1f}\u00b0".format(a))
+                    op.value = -a
 
                 row = boxx.row(align=True)
                 row.prop(root, "flow_sw_random_seed", text="Random Seed")
