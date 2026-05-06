@@ -224,9 +224,27 @@ class FLOW_OT_bake_sway(Operator):
 
 class FLOW_MT_presets(Menu):
     bl_label = "Presets"
-    preset_subdir = "flow"
-    preset_operator = "flow.execute_preset"
-    draw = Menu.draw_preset
+
+    def draw(self, context):
+        layout = self.layout
+
+        addon_presets_dir = os.path.join(os.path.dirname(__file__), "presets")
+        if os.path.isdir(addon_presets_dir):
+            for fname in sorted(os.listdir(addon_presets_dir)):
+                if fname.endswith('.py'):
+                    name = bpy.path.display_name(fname)
+                    op = layout.operator("flow.execute_preset", text=name)
+                    op.filepath = os.path.join(addon_presets_dir, fname)
+
+        user_presets_dir = os.path.join(bpy.utils.user_resource('SCRIPTS'), "presets", "flow")
+        if os.path.isdir(user_presets_dir):
+            user_files = sorted(f for f in os.listdir(user_presets_dir) if f.endswith('.py'))
+            if user_files:
+                layout.separator()
+                for fname in user_files:
+                    name = bpy.path.display_name(fname)
+                    op = layout.operator("flow.execute_preset", text=name)
+                    op.filepath = os.path.join(user_presets_dir, fname)
 
 
 class FLOW_OT_execute_preset(Operator):
