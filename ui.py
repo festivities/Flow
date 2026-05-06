@@ -123,8 +123,10 @@ class FLOW_PT_main_panel(Panel):
 
                 row = boxx.row(align=True)
                 op = row.operator("flow.adjust_roll", text="+ Roll")
+                op.mode = 'ADD'
                 op.value = prefs.flow_roll_adjust_value
                 op = row.operator("flow.adjust_roll", text="- Roll")
+                op.mode = 'ADD'
                 op.value = -prefs.flow_roll_adjust_value
                 op = row.operator("flow.adjust_roll", text="= Roll")
                 op.mode = 'SET'
