@@ -7,12 +7,4 @@ submodules = [
     "visualizer",
 ]
 
-_register, _unregister = register_submodule_factory(__name__, submodules)
-
-
-def register():
-    _register()
-
-
-def unregister():
-    _unregister()
+register, unregister = register_submodule_factory(__name__, submodules)
