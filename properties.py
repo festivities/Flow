@@ -139,7 +139,6 @@ class FlowPreferences(AddonPreferences):
     sw_presets: bpy.props.EnumProperty(
         name="Sway Chain Presets",
         items=get_sw_presets,
-        default='DEFAULTSWAY',
     )
 
     apply_to_all_chains: bpy.props.BoolProperty(
@@ -196,6 +195,19 @@ class FlowPreferences(AddonPreferences):
         row.prop(self, "keep_existing_settings")
 
 
+def _ensure_default_sw_preset():
+    addon = bpy.context.preferences.addons.get(__package__)
+    if addon is None:
+        return
+
+    prefs = addon.preferences
+    preset_items = get_sw_presets(None, None)
+    valid_ids = {item[0] for item in preset_items}
+
+    if "DEFAULTSWAY" in valid_ids and prefs.sw_presets not in valid_ids:
+        prefs.sw_presets = "DEFAULTSWAY"
+
+
 #
 # PROPERTY REGISTRATION
 #
@@ -210,6 +222,7 @@ _register, _unregister = bpy.utils.register_classes_factory(_classes)
 
 def register():
     _register()
+    _ensure_default_sw_preset()
 
     bpy.types.PoseBone.flow_has_sway = bpy.props.BoolProperty(
         default=False, options={"LIBRARY_EDITABLE"}, override={"LIBRARY_OVERRIDABLE"}
