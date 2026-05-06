@@ -15,12 +15,13 @@ def update_sw_prop(self, attr_name, attr_value):
     prefs = bpy.context.preferences.addons[__package__].preferences
 
     if self.flow_update:
+        active_chain_id = self.flow_chain_id
         chains, bones = [], []
         for pb in bpy.context.selected_pose_bones:
             if pb.flow_has_sway == False:
                 continue
 
-            if prefs.apply_to_all_chains == False and pb.flow_chain_id != bpy.context.active_pose_bone.flow_chain_id:
+            if prefs.apply_to_all_chains == False and pb.flow_chain_id != active_chain_id:
                 continue
 
             if pb.flow_chain_id not in chains:
@@ -44,67 +45,67 @@ def update_sw_prop(self, attr_name, attr_value):
 
 
 def update_sw_amplitude(self, context):
-    update_sw_prop(self, "flow_sw_amplitude", get_root_from_sway_bone(context.active_pose_bone).flow_sw_amplitude)
+    update_sw_prop(self, "flow_sw_amplitude", self.flow_sw_amplitude)
     return
 
 
 def update_sw_frequency(self, context):
-    update_sw_prop(self, "flow_sw_frequency", get_root_from_sway_bone(context.active_pose_bone).flow_sw_frequency)
+    update_sw_prop(self, "flow_sw_frequency", self.flow_sw_frequency)
     return
 
 
 def update_sw_delay(self, context):
-    update_sw_prop(self, "flow_sw_delay", get_root_from_sway_bone(context.active_pose_bone).flow_sw_delay)
+    update_sw_prop(self, "flow_sw_delay", self.flow_sw_delay)
     return
 
 
 def update_sw_offset(self, context):
-    update_sw_prop(self, "flow_sw_offset", get_root_from_sway_bone(context.active_pose_bone).flow_sw_offset)
+    update_sw_prop(self, "flow_sw_offset", self.flow_sw_offset)
     return
 
 
 def update_sw_falloff_start(self, context):
-    update_sw_prop(self, "flow_sw_falloff_start", get_root_from_sway_bone(context.active_pose_bone).flow_sw_falloff_start)
+    update_sw_prop(self, "flow_sw_falloff_start", self.flow_sw_falloff_start)
     return
 
 
 def update_sw_speed(self, context):
-    update_sw_prop(self, "flow_sw_speed", get_root_from_sway_bone(context.active_pose_bone).flow_sw_speed)
+    update_sw_prop(self, "flow_sw_speed", self.flow_sw_speed)
     return
 
 
 def update_sw_random_seed(self, context):
-    update_sw_prop(self, "flow_sw_random_seed", get_root_from_sway_bone(context.active_pose_bone).flow_sw_random_seed)
+    update_sw_prop(self, "flow_sw_random_seed", self.flow_sw_random_seed)
     return
 
 
 def update_sw_roll(self, context):
-    update_sw_prop(self, "flow_sw_roll", get_root_from_sway_bone(context.active_pose_bone).flow_sw_roll)
+    update_sw_prop(self, "flow_sw_roll", self.flow_sw_roll)
     return
 
 
 def update_sw_sub_amplitude(self, context):
-    update_sw_prop(self, "flow_sw_sub_amplitude", get_root_from_sway_bone(context.active_pose_bone).flow_sw_sub_amplitude)
+    update_sw_prop(self, "flow_sw_sub_amplitude", self.flow_sw_sub_amplitude)
     return
 
 
 def update_sw_sub_frequency(self, context):
-    update_sw_prop(self, "flow_sw_sub_frequency", get_root_from_sway_bone(context.active_pose_bone).flow_sw_sub_frequency)
+    update_sw_prop(self, "flow_sw_sub_frequency", self.flow_sw_sub_frequency)
     return
 
 
 def update_sw_sub_delay(self, context):
-    update_sw_prop(self, "flow_sw_sub_delay", get_root_from_sway_bone(context.active_pose_bone).flow_sw_sub_delay)
+    update_sw_prop(self, "flow_sw_sub_delay", self.flow_sw_sub_delay)
     return
 
 
 def update_sw_sub_offset(self, context):
-    update_sw_prop(self, "flow_sw_sub_offset", get_root_from_sway_bone(context.active_pose_bone).flow_sw_sub_offset)
+    update_sw_prop(self, "flow_sw_sub_offset", self.flow_sw_sub_offset)
     return
 
 
 def update_sw_sub_falloff_start(self, context):
-    update_sw_prop(self, "flow_sw_sub_falloff_start", get_root_from_sway_bone(context.active_pose_bone).flow_sw_sub_falloff_start)
+    update_sw_prop(self, "flow_sw_sub_falloff_start", self.flow_sw_sub_falloff_start)
     return
 
 
