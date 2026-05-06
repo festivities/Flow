@@ -1,9 +1,5 @@
-from .functions import load_presets
 from bpy.types import AddonPreferences
 import bpy
-import os
-import json
-from pathlib import Path
 
 
 #
@@ -126,31 +122,13 @@ def update_sway_visualizer(self, context):
 #
 
 
-def get_sw_presets(self, context):
-    preset_fp = Path(os.path.dirname(__file__)) / "presets" / "sway_chain_presets.json"
-    user_preset_fp = Path(os.path.dirname(__file__)) / "user_created_presets" / "sway_chain_presets.json"
-
-    return load_presets(preset_fp) + load_presets(user_preset_fp)
-
-
 class FlowPreferences(AddonPreferences):
     bl_idname = __package__
-
-    sw_presets: bpy.props.EnumProperty(
-        name="Sway Chain Presets",
-        items=get_sw_presets,
-    )
 
     apply_to_all_chains: bpy.props.BoolProperty(
         default=True,
         name="Auto Update All Selected Chains",
         description="Any settings change for the active chain will apply to all selected bone chains",
-    )
-
-    keep_existing_settings: bpy.props.BoolProperty(
-        default=False,
-        name="Keep Existing Settings",
-        description="When readding a physics type to bones it will keep the previously set settings. Otherwise it will load in the active preset"
     )
 
     sw_general_menu: bpy.props.BoolProperty(
@@ -191,8 +169,6 @@ class FlowPreferences(AddonPreferences):
         column = layout.column(align=True)
         row = column.row(align=True)
         row.prop(self, "apply_to_all_chains")
-        row = column.row(align=True)
-        row.prop(self, "keep_existing_settings")
 
 
 #

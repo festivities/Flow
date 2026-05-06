@@ -61,14 +61,9 @@ class FLOW_PT_main_panel(Panel):
             box = layout.box()
 
             row = box.row(align=True)
-            row.label(text="Presets:")
-            row = box.row(align=True)
-            row.prop(prefs, "sw_presets", text="")
-            row.operator("flow.save_preset", text="", icon="ADD")
-            row.operator("flow.delete_preset", text="", icon="REMOVE")
-
-            row = box.row(align=True)
-            row.operator("flow.apply_preset", text="Apply Preset")
+            row.menu("FLOW_MT_presets", text="Presets")
+            row.operator("flow.add_preset", text="", icon="ADD")
+            row.operator("flow.remove_preset", text="", icon="REMOVE")
 
             boxx, expanded = draw_subpanel(box, prefs, "sw_general_menu", "Main Axis Wave", "MOD_WAVE")
             if expanded:
