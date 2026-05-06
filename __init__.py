@@ -1,4 +1,5 @@
 from bpy.utils import register_submodule_factory
+import bpy
 import os
 import shutil
 
@@ -32,7 +33,6 @@ _register, _unregister = register_submodule_factory(__name__, submodules)
 
 
 def register():
-    import bpy
     _check_presets()
     _register()
 
