@@ -48,7 +48,7 @@ def _draw_sway_arrows():
             cr = math.cos(roll_rad)
 
             main_dir = (bone_x * sr + bone_z * cr).normalized()
-            sub_dir = (bone_x * cr - bone_z * sr).normalized()
+            sub_dir = -(bone_x * cr - bone_z * sr).normalized()
 
             shaft_len = pb.length * 0.5
             head_len = shaft_len * 0.3
@@ -79,10 +79,10 @@ def _draw_sway_arrows():
         shader.uniform_float("color", color)
         batch.draw(shader)
 
-    draw_batch(inactive_main, 1.5, (0.15, 0.40, 0.30, 0.25))
-    draw_batch(inactive_sub, 1.2, (0.40, 0.25, 0.10, 0.25))
+    draw_batch(inactive_main, 2.5, (0.15, 0.40, 0.30, 0.45))
+    draw_batch(inactive_sub, 2.5, (0.40, 0.25, 0.10, 0.45))
     draw_batch(active_main, 2.5, (0.20, 0.95, 0.60, 0.85))
-    draw_batch(active_sub, 2.0, (0.95, 0.55, 0.20, 0.85))
+    draw_batch(active_sub, 2.5, (0.95, 0.55, 0.20, 0.85))
 
 
 def enable_sway_visualizer():

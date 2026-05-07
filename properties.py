@@ -109,6 +109,16 @@ def update_sw_sub_falloff_start(self, context):
     return
 
 
+def update_sw_bias(self, context):
+    update_sw_prop(self, "flow_sw_bias", self.flow_sw_bias)
+    return
+
+
+def update_sw_sub_bias(self, context):
+    update_sw_prop(self, "flow_sw_sub_bias", self.flow_sw_sub_bias)
+    return
+
+
 def update_sway_visualizer(self, context):
     from .visualizer import enable_sway_visualizer, disable_sway_visualizer
     if self.flow_show_sway_visualizer:
@@ -380,10 +390,32 @@ def register():
         override={"LIBRARY_OVERRIDABLE"},
     )
 
+    bpy.types.PoseBone.flow_sw_bias = bpy.props.FloatProperty(
+        default=0.0,
+        min=-90.0,
+        max=90.0,
+        description="Constant angular offset in the main sway direction (positive = toward arrow, negative = against arrow)",
+        update=update_sw_bias,
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
+        override={"LIBRARY_OVERRIDABLE"},
+    )
+
+    bpy.types.PoseBone.flow_sw_sub_bias = bpy.props.FloatProperty(
+        default=0.0,
+        min=-90.0,
+        max=90.0,
+        description="Constant angular offset in the sub sway direction (positive = toward arrow, negative = against arrow)",
+        update=update_sw_sub_bias,
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
+        override={"LIBRARY_OVERRIDABLE"},
+    )
+
 
 def unregister():
     _unregister()
 
+    del bpy.types.PoseBone.flow_sw_sub_bias
+    del bpy.types.PoseBone.flow_sw_bias
     del bpy.types.PoseBone.flow_sw_sub_falloff_start
     del bpy.types.PoseBone.flow_sw_sub_offset
     del bpy.types.PoseBone.flow_sw_sub_delay

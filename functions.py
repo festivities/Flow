@@ -188,7 +188,7 @@ def _ensure_sway_constraint(pb, sway_target):
     con.use_y = True
     con.use_z = True
     con.mix_mode = "ADD"
-    con.owner_space = "LOCAL_WITH_PARENT"
+    con.owner_space = "LOCAL"
     con.target_space = "LOCAL"
     con.influence = 1.0
 
@@ -224,10 +224,6 @@ def clear_sway_drivers(rig, pb):
 
 def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, is_sub=False):
     """Add a single sway driver to the hidden helper target."""
-    fc = sway_target.driver_add("rotation_euler", axis_index)
-    drv = fc.driver
-    drv.type = 'SCRIPTED'
-
     chain_root = pb
     for par in pb.parent_recursive:
         if par.flow_has_sway and par.flow_chain_id == pb.flow_chain_id:
@@ -238,6 +234,85 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
             break
 
     root_path = chain_root.path_from_id()
+
+    fps = bpy.context.scene.render.fps
+    f2_const = round(bone_index / (total_bones * 2), 4)
+
+    if "_sw_mo" not in sway_target:
+        sway_target["_sw_mo"] = 0.0
+        sway_target["_sw_so"] = 0.0
+
+        fc_mo = sway_target.driver_add('["_sw_mo"]')
+        fc_mo.driver.type = 'SCRIPTED'
+        v = fc_mo.driver.variables.new()
+        v.name = "frq"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_frequency'
+        v = fc_mo.driver.variables.new()
+        v.name = "sp"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_speed'
+        v = fc_mo.driver.variables.new()
+        v.name = "dly"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_delay'
+        v = fc_mo.driver.variables.new()
+        v.name = "off"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_offset'
+        v = fc_mo.driver.variables.new()
+        v.name = "rs"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_random_seed'
+        fc_mo.driver.expression = f"sin(2*pi*frq*sp*(frame+dly*{f2_const}+rs*{fps})/{fps}+off/{fps})"
+
+        fc_so = sway_target.driver_add('["_sw_so"]')
+        fc_so.driver.type = 'SCRIPTED'
+        v = fc_so.driver.variables.new()
+        v.name = "f2"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_sub_frequency'
+        v = fc_so.driver.variables.new()
+        v.name = "sp"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_speed'
+        v = fc_so.driver.variables.new()
+        v.name = "d2"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_sub_delay'
+        v = fc_so.driver.variables.new()
+        v.name = "o2"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_sub_offset'
+        v = fc_so.driver.variables.new()
+        v.name = "rs"
+        v.type = 'SINGLE_PROP'
+        v.targets[0].id_type = 'OBJECT'
+        v.targets[0].id = rig
+        v.targets[0].data_path = root_path + '.flow_sw_random_seed'
+        fc_so.driver.expression = f"sin(2*pi*f2*sp*(frame+d2*{f2_const}+rs*{fps})/{fps}+o2/{fps})"
+
+    fc = sway_target.driver_add("rotation_euler", axis_index)
+    drv = fc.driver
+    drv.type = 'SCRIPTED'
 
     var_marker = drv.variables.new()
     var_marker.name = "sw"
@@ -337,20 +412,42 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     var_rl.targets[0].id = rig
     var_rl.targets[0].data_path = root_path + '.flow_sw_roll'
 
-    fps = bpy.context.scene.render.fps
+    var_bm = drv.variables.new()
+    var_bm.name = "bm"
+    var_bm.type = 'SINGLE_PROP'
+    var_bm.targets[0].id_type = 'OBJECT'
+    var_bm.targets[0].id = rig
+    var_bm.targets[0].data_path = root_path + '.flow_sw_bias'
+
+    var_bs = drv.variables.new()
+    var_bs.name = "bs"
+    var_bs.type = 'SINGLE_PROP'
+    var_bs.targets[0].id_type = 'OBJECT'
+    var_bs.targets[0].id = rig
+    var_bs.targets[0].data_path = root_path + '.flow_sw_sub_bias'
+
+    var_mo = drv.variables.new()
+    var_mo.name = "mo"
+    var_mo.type = 'SINGLE_PROP'
+    var_mo.targets[0].id_type = 'OBJECT'
+    var_mo.targets[0].id = sway_target
+    var_mo.targets[0].data_path = '["_sw_mo"]'
+
+    var_so = drv.variables.new()
+    var_so.name = "so"
+    var_so.type = 'SINGLE_PROP'
+    var_so.targets[0].id_type = 'OBJECT'
+    var_so.targets[0].id = sway_target
+    var_so.targets[0].data_path = '["_sw_so"]'
 
     bi = bone_index
     tb = max(total_bones - 1, 1)
     f1 = round(bi / tb, 4)
-    f2_const = round(bi / (total_bones * 2), 4)
-
-    xw = f"radians(amp)*(fo+(1-fo)*{f1})*sin(2*pi*frq*sp*(frame+dly*{f2_const}+rs*{fps})/{fps}+off/{fps})"
-    zw = f"radians(a2)*(g2+(1-g2)*{f1})*sin(2*pi*f2*sp*(frame+d2*{f2_const}+rs*{fps})/{fps}+o2/{fps})"
 
     if is_sub:
-        expr = f"{xw}*sin(radians(rl))+{zw}*cos(radians(rl))"
+        expr = f"(radians(bm)+radians(amp)*(fo+(1-fo)*{f1})*mo)*sin(radians(rl))+((radians(bs))+radians(a2)*(g2+(1-g2)*{f1})*so)*cos(radians(rl))"
     else:
-        expr = f"{xw}*cos(radians(rl))-{zw}*sin(radians(rl))"
+        expr = f"(radians(bm)+radians(amp)*(fo+(1-fo)*{f1})*mo)*cos(radians(rl))-((radians(bs))+radians(a2)*(g2+(1-g2)*{f1})*so)*sin(radians(rl))"
 
     drv.expression = expr
 

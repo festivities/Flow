@@ -1,3 +1,4 @@
 .vscode/
 .opencode/
 data/
+__pycache__/
