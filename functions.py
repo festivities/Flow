@@ -473,10 +473,13 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     f1 = round(bi / tb, 4)
     f2 = round(1.0 - f1, 4)
 
+    main_remap = f"max(lmn,bm-amp*(fo*{f2}+{f1}))*(1-mo)+min(lmp,bm+amp*(fo*{f2}+{f1}))*(1+mo)"
+    sub_remap = f"max(lsn,bs-a2*(g2*{f2}+{f1}))*(1-so)+min(lsp,bs+a2*(g2*{f2}+{f1}))*(1+so)"
+
     if is_sub:
-        expr = f"pi/360*((lmp+lmn+sqrt((bm+amp*(fo*{f2}+{f1})*mo-lmn)**2+99)-sqrt((lmp-bm-amp*(fo*{f2}+{f1})*mo)**2+99))*sin(rl*pi/180)+(lsp+lsn+sqrt((bs+a2*(g2*{f2}+{f1})*so-lsn)**2+99)-sqrt((lsp-bs-a2*(g2*{f2}+{f1})*so)**2+99))*cos(rl*pi/180))"
+        expr = f"pi/360*({main_remap})*sin(rl*pi/180)+pi/360*({sub_remap})*cos(rl*pi/180)"
     else:
-        expr = f"pi/360*((lmp+lmn+sqrt((bm+amp*(fo*{f2}+{f1})*mo-lmn)**2+99)-sqrt((lmp-bm-amp*(fo*{f2}+{f1})*mo)**2+99))*cos(rl*pi/180)-(lsp+lsn+sqrt((bs+a2*(g2*{f2}+{f1})*so-lsn)**2+99)-sqrt((lsp-bs-a2*(g2*{f2}+{f1})*so)**2+99))*sin(rl*pi/180))"
+        expr = f"pi/360*({main_remap})*cos(rl*pi/180)-pi/360*({sub_remap})*sin(rl*pi/180)"
 
     drv.expression = expr
 
@@ -610,6 +613,8 @@ def bone_has_custom_sway_settings(pb):
         "flow_sw_sub_delay",
         "flow_sw_sub_offset",
         "flow_sw_sub_falloff_start",
+        "flow_sw_bias",
+        "flow_sw_sub_bias",
         "flow_sw_limit_pos",
         "flow_sw_limit_neg",
         "flow_sw_sub_limit_pos",
