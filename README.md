@@ -35,7 +35,7 @@
 
 ## Installation
 
-1. Download [Flow](https://github.com/festivities/Flow/archive/refs/heads/main.zip). Older versions can be downloaded through this repository's [commit history](https://github.com/festivities/Flow/commits/main/).
+1. Download [Flow](https://github.com/festivities/Flow/releases).
 1. In Blender, go to `Edit -> Preferences -> Get Extensions -> Extension Settings -> Install from Disk...`.
 1. Locate and select the downloaded file.
 1. Upon successful installation, the `Flow` category will appear in the `N-Panel` (shortcut: **N**).
