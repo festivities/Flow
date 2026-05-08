@@ -5,7 +5,7 @@ name = "Flow"
 tagline = "One-click procedural wavy bone chain animation"
 maintainer = "festivity"
 type = "add-on"
-blender_version_min = "4.2.0"
+blender_version_min = "5.0.0"
 license = [
   "SPDX:GPL-3.0-or-later",
 ]
