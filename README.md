@@ -8,7 +8,7 @@
 
 <h1 align = "center">Flow</h1>
 
-<p align = "center">This extension lets you easily make bone chains sway. It's essentially a port of <a href="https://youtu.be/oiEjz_-8wfk">AFPHairRig</a> from the After Effects community.</a></p>
+<p align = "center">Flow is a Blender extension that lets you easily create procedural swaying animations for bone chains. It provides a quick way to add lifelike, wavy secondary motion to your rigs. It's essentially a port of <a href="https://youtu.be/oiEjz_-8wfk">AFPHairRig</a> from the After Effects community.</a></p>
 
 [comment]:<div align="center">
 [comment]:    <img src="./images/a.webp">
@@ -25,6 +25,14 @@
 
 ---
 
+## Features
+- One-click procedural wavy bone chain animation
+- Adjust amplitude, frequency, delay, offset, speed, and falloff
+- Toggle visual guides in the 3D viewport to clearly see the sway direction
+- Automatically update settings across multiple selected bone chains simultaneously or isolate changes to individual chains
+- Bake animations directly to keyframes
+- Save and load custom presets
+
 ## Installation
 
 1. Download [Flow](https://github.com/festivities/Flow/archive/refs/heads/main.zip). Older versions can be downloaded through this repository's [commit history](https://github.com/festivities/Flow/commits/main/).
@@ -39,10 +47,6 @@ This extension is confirmed to be compatible with the following Blender versions
 - 5.0
 - 5.1.0
 - 5.1.1
-
-## Known issues
-
-- There may be noticeable discontinuities and visual jittering during preview. I have no idea why this is the case but baking the sway should eliminate all of it.
 
 ## Support
 
