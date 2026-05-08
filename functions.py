@@ -471,11 +471,12 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     bi = bone_index
     tb = max(total_bones - 1, 1)
     f1 = round(bi / tb, 4)
+    f2 = round(1.0 - f1, 4)
 
     if is_sub:
-        expr = f"(min(radians(lmp),max(radians(lmn),radians(bm)+radians(amp)*(fo+(1-fo)*{f1})*mo)))*sin(radians(rl))+(min(radians(lsp),max(radians(lsn),radians(bs)+radians(a2)*(g2+(1-g2)*{f1})*so)))*cos(radians(rl))"
+        expr = f"pi/360*((lmp+lmn+sqrt((bm+amp*(fo*{f2}+{f1})*mo-lmn)**2+99)-sqrt((lmp-bm-amp*(fo*{f2}+{f1})*mo)**2+99))*sin(rl*pi/180)+(lsp+lsn+sqrt((bs+a2*(g2*{f2}+{f1})*so-lsn)**2+99)-sqrt((lsp-bs-a2*(g2*{f2}+{f1})*so)**2+99))*cos(rl*pi/180))"
     else:
-        expr = f"(min(radians(lmp),max(radians(lmn),radians(bm)+radians(amp)*(fo+(1-fo)*{f1})*mo)))*cos(radians(rl))-(min(radians(lsp),max(radians(lsn),radians(bs)+radians(a2)*(g2+(1-g2)*{f1})*so)))*sin(radians(rl))"
+        expr = f"pi/360*((lmp+lmn+sqrt((bm+amp*(fo*{f2}+{f1})*mo-lmn)**2+99)-sqrt((lmp-bm-amp*(fo*{f2}+{f1})*mo)**2+99))*cos(rl*pi/180)-(lsp+lsn+sqrt((bs+a2*(g2*{f2}+{f1})*so-lsn)**2+99)-sqrt((lsp-bs-a2*(g2*{f2}+{f1})*so)**2+99))*sin(rl*pi/180))"
 
     drv.expression = expr
 
