@@ -5,6 +5,30 @@ import os
 import json
 from pathlib import Path
 
+# Selection order tracking cache: {(armature_name, bone_name): bool}
+_last_select_state = {}
+
+
+@bpy.app.handlers.persistent
+def _flow_track_selection(scene, depsgraph):
+    global _last_select_state
+    for arm_obj in bpy.data.objects:
+        if arm_obj.type != 'ARMATURE' or arm_obj.mode != 'POSE':
+            continue
+        counter = arm_obj.get('_flow_sel_counter', 0)
+        changed = False
+        for pb in arm_obj.pose.bones:
+            key = (arm_obj.name, pb.name)
+            is_sel = pb.select
+            was_sel = _last_select_state.get(key, False)
+            if is_sel and not was_sel:
+                counter += 1
+                pb.flow_selection_order = counter
+                changed = True
+            _last_select_state[key] = is_sel
+        if changed:
+            arm_obj['_flow_sel_counter'] = counter
+
 
 #
 # SWAY CHAIN UPDATE FUNCTIONS
@@ -455,9 +479,22 @@ def register():
         override={"LIBRARY_OVERRIDABLE"},
     )
 
+    bpy.types.PoseBone.flow_selection_order = bpy.props.IntProperty(
+        default=0,
+        options={"LIBRARY_EDITABLE"},
+        override={"LIBRARY_OVERRIDABLE"},
+    )
+
+    bpy.app.handlers.depsgraph_update_post.append(_flow_track_selection)
+
 
 def unregister():
     _unregister()
+
+    if _flow_track_selection in bpy.app.handlers.depsgraph_update_post:
+        bpy.app.handlers.depsgraph_update_post.remove(_flow_track_selection)
+
+    del bpy.types.PoseBone.flow_selection_order
 
     del bpy.types.PoseBone.flow_sw_sub_limit_neg
     del bpy.types.PoseBone.flow_sw_sub_limit_pos

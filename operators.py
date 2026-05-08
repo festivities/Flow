@@ -423,20 +423,24 @@ class FLOW_OT_batch_offset(Operator):
         prefs = context.preferences.addons[__package__].preferences
         increment = prefs.flow_batch_offset_increment
 
-        chains, bones = [], []
+        chain_info = {}  # chain_id -> (selection_order, representative_bone)
         for pb in context.selected_pose_bones:
-            if not pb.flow_has_sway:
+            if not pb.flow_has_sway or not pb.flow_chain_id:
                 continue
-            if pb.flow_chain_id not in chains:
-                chains.append(pb.flow_chain_id)
-                bones.append(pb)
+            cid = pb.flow_chain_id
+            order = pb.flow_selection_order
+            if cid not in chain_info or order < chain_info[cid][0]:
+                chain_info[cid] = (order, pb)
 
-        if len(chains) == 0:
+        if not chain_info:
             self.report({"ERROR"}, "No sway chains selected")
             return {"CANCELLED"}
 
-        paired = sorted(zip(chains, bones), key=lambda x: x[0])
-        chains, bones = zip(*paired)
+        sorted_items = sorted(chain_info.items(), key=lambda x: x[1][0])
+        orders = [info[0] for _, info in sorted_items]
+        if len(set(orders)) <= 1:
+            sorted_items = sorted(chain_info.items(), key=lambda x: x[0])
+        chains, bones = zip(*[(cid, info[1]) for cid, info in sorted_items])
 
         attr = "flow_sw_sub_offset" if self.mode == 'SUB' else "flow_sw_offset"
 
