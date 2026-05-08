@@ -427,28 +427,28 @@ def register():
     )
 
     bpy.types.PoseBone.flow_sw_limit_pos = bpy.props.FloatProperty(
-        default=180.0, min=-360.0, max=360.0,
+        default=360.0, min=0.0, max=360.0,
         description="Maximum positive rotation (in rest space) on the main sway axis. Acts like a soft collision wall.",
         update=update_sw_limit_pos,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
     bpy.types.PoseBone.flow_sw_limit_neg = bpy.props.FloatProperty(
-        default=-180.0, min=-360.0, max=360.0,
+        default=-360.0, min=-360.0, max=0.0,
         description="Minimum (most negative) rotation (in rest space) on the main sway axis.",
         update=update_sw_limit_neg,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
     bpy.types.PoseBone.flow_sw_sub_limit_pos = bpy.props.FloatProperty(
-        default=180.0, min=-360.0, max=360.0,
+        default=360.0, min=0.0, max=360.0,
         description="Maximum positive rotation (in rest space) on the sub sway axis.",
         update=update_sw_sub_limit_pos,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
     bpy.types.PoseBone.flow_sw_sub_limit_neg = bpy.props.FloatProperty(
-        default=-180.0, min=-360.0, max=360.0,
+        default=-360.0, min=-360.0, max=0.0,
         description="Minimum (most negative) rotation (in rest space) on the sub sway axis.",
         update=update_sw_sub_limit_neg,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
