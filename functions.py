@@ -473,8 +473,8 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     f1 = round(bi / tb, 4)
     f2 = round(1.0 - f1, 4)
 
-    main_remap = f"max(lmn,bm-amp*(fo*{f2}+{f1}))*(1-mo)+min(lmp,bm+amp*(fo*{f2}+{f1}))*(1+mo)"
-    sub_remap = f"max(lsn,bs-a2*(g2*{f2}+{f1}))*(1-so)+min(lsp,bs+a2*(g2*{f2}+{f1}))*(1+so)"
+    main_remap = f"max(lmn,min(bm,lmp)-amp*(fo*{f2}+{f1}))*(1-mo)+min(lmp,max(lmn,bm)+amp*(fo*{f2}+{f1}))*(1+mo)"
+    sub_remap = f"max(lsn,min(bs,lsp)-a2*(g2*{f2}+{f1}))*(1-so)+min(lsp,max(lsn,bs)+a2*(g2*{f2}+{f1}))*(1+so)"
 
     if is_sub:
         expr = f"pi/360*({main_remap})*sin(rl*pi/180)+pi/360*({sub_remap})*cos(rl*pi/180)"
