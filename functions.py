@@ -426,6 +426,34 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     var_bs.targets[0].id = rig
     var_bs.targets[0].data_path = root_path + '.flow_sw_sub_bias'
 
+    var_lmp = drv.variables.new()
+    var_lmp.name = "lmp"
+    var_lmp.type = 'SINGLE_PROP'
+    var_lmp.targets[0].id_type = 'OBJECT'
+    var_lmp.targets[0].id = rig
+    var_lmp.targets[0].data_path = root_path + '.flow_sw_limit_pos'
+
+    var_lmn = drv.variables.new()
+    var_lmn.name = "lmn"
+    var_lmn.type = 'SINGLE_PROP'
+    var_lmn.targets[0].id_type = 'OBJECT'
+    var_lmn.targets[0].id = rig
+    var_lmn.targets[0].data_path = root_path + '.flow_sw_limit_neg'
+
+    var_lsp = drv.variables.new()
+    var_lsp.name = "lsp"
+    var_lsp.type = 'SINGLE_PROP'
+    var_lsp.targets[0].id_type = 'OBJECT'
+    var_lsp.targets[0].id = rig
+    var_lsp.targets[0].data_path = root_path + '.flow_sw_sub_limit_pos'
+
+    var_lsn = drv.variables.new()
+    var_lsn.name = "lsn"
+    var_lsn.type = 'SINGLE_PROP'
+    var_lsn.targets[0].id_type = 'OBJECT'
+    var_lsn.targets[0].id = rig
+    var_lsn.targets[0].data_path = root_path + '.flow_sw_sub_limit_neg'
+
     var_mo = drv.variables.new()
     var_mo.name = "mo"
     var_mo.type = 'SINGLE_PROP'
@@ -445,9 +473,9 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     f1 = round(bi / tb, 4)
 
     if is_sub:
-        expr = f"(radians(bm)+radians(amp)*(fo+(1-fo)*{f1})*mo)*sin(radians(rl))+((radians(bs))+radians(a2)*(g2+(1-g2)*{f1})*so)*cos(radians(rl))"
+        expr = f"(min(radians(lmp),max(radians(lmn),radians(bm)+radians(amp)*(fo+(1-fo)*{f1})*mo)))*sin(radians(rl))+(min(radians(lsp),max(radians(lsn),radians(bs)+radians(a2)*(g2+(1-g2)*{f1})*so)))*cos(radians(rl))"
     else:
-        expr = f"(radians(bm)+radians(amp)*(fo+(1-fo)*{f1})*mo)*cos(radians(rl))-((radians(bs))+radians(a2)*(g2+(1-g2)*{f1})*so)*sin(radians(rl))"
+        expr = f"(min(radians(lmp),max(radians(lmn),radians(bm)+radians(amp)*(fo+(1-fo)*{f1})*mo)))*cos(radians(rl))-(min(radians(lsp),max(radians(lsn),radians(bs)+radians(a2)*(g2+(1-g2)*{f1})*so)))*sin(radians(rl))"
 
     drv.expression = expr
 
@@ -581,6 +609,10 @@ def bone_has_custom_sway_settings(pb):
         "flow_sw_sub_delay",
         "flow_sw_sub_offset",
         "flow_sw_sub_falloff_start",
+        "flow_sw_limit_pos",
+        "flow_sw_limit_neg",
+        "flow_sw_sub_limit_pos",
+        "flow_sw_sub_limit_neg",
     )
 
     for prop_name in sway_props:
