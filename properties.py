@@ -327,7 +327,7 @@ def register():
         default=False,
         description="Reverse the wave cascade direction so the root leads and the tip trails",
         update=update_sw_delay_opposite,
-        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
+        options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
@@ -415,7 +415,7 @@ def register():
         default=False,
         description="Reverse the sub-axis wave cascade direction so the root leads and the tip trails",
         update=update_sw_sub_delay_opposite,
-        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
+        options={"LIBRARY_EDITABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
 
