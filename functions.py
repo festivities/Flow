@@ -233,18 +233,20 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     root_path = chain_root.path_from_id()
 
     fps = bpy.context.scene.render.fps
-    rev_index = bone_index
-    if is_sub:
-        if not chain_root.festivity_flow_sw_sub_delay_opposite:
-            rev_index = total_bones - 1 - bone_index
-    else:
-        if not chain_root.festivity_flow_sw_delay_opposite:
-            rev_index = total_bones - 1 - bone_index
-    f2_const = round(rev_index / (total_bones * 2), 4)
 
     if "_sw_mo" not in sway_target:
         sway_target["_sw_mo"] = 0.0
         sway_target["_sw_so"] = 0.0
+
+        rev_index_main = bone_index
+        if not chain_root.festivity_flow_sw_delay_opposite:
+            rev_index_main = total_bones - 1 - bone_index
+        f2_const_main = round(rev_index_main / (total_bones * 2), 4)
+
+        rev_index_sub = bone_index
+        if not chain_root.festivity_flow_sw_sub_delay_opposite:
+            rev_index_sub = total_bones - 1 - bone_index
+        f2_const_sub = round(rev_index_sub / (total_bones * 2), 4)
 
         fc_mo = sway_target.driver_add('["_sw_mo"]')
         fc_mo.driver.type = 'SCRIPTED'
@@ -278,7 +280,7 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
         v.targets[0].data_path = root_path + '.festivity_flow_sw_random_seed'
-        fc_mo.driver.expression = f"sin(2*pi*frq*sp*(frame+dly*{f2_const}+rs*{fps})/{fps}+off/{fps})"
+        fc_mo.driver.expression = f"sin(2*pi*frq*sp*(frame+dly*{f2_const_main}+rs*{fps})/{fps}+off/{fps})"
 
         fc_so = sway_target.driver_add('["_sw_so"]')
         fc_so.driver.type = 'SCRIPTED'
@@ -312,7 +314,7 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
         v.targets[0].data_path = root_path + '.festivity_flow_sw_random_seed'
-        fc_so.driver.expression = f"sin(2*pi*f2*sp*(frame+d2*{f2_const}+rs*{fps})/{fps}+o2/{fps})"
+        fc_so.driver.expression = f"sin(2*pi*f2*sp*(frame+d2*{f2_const_sub}+rs*{fps})/{fps}+o2/{fps})"
 
     fc = sway_target.driver_add("rotation_euler", axis_index)
     drv = fc.driver
