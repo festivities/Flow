@@ -44,18 +44,19 @@ class FESTIVITY_FLOW_OT_add_sway(Operator):
         create_sway_chains(sim_chains)
 
         if len(preset_chains) > 0:
-            preset_dir = bpy.utils.preset_paths("festivity_flow")
-            if preset_dir and os.path.isdir(preset_dir[0]):
-                py_files = sorted(
-                    [f for f in os.listdir(preset_dir[0]) if f.endswith(".py")],
-                    key=lambda f: os.path.getmtime(os.path.join(preset_dir[0], f)),
-                    reverse=True,
+            py_files = []
+            for preset_dir in bpy.utils.preset_paths("festivity_flow"):
+                if os.path.isdir(preset_dir):
+                    for f in os.listdir(preset_dir):
+                        if f.endswith(".py"):
+                            fp = os.path.join(preset_dir, f)
+                            py_files.append((os.path.getmtime(fp), fp))
+            if py_files:
+                py_files.sort(reverse=True)
+                bpy.ops.script.execute_preset(
+                    filepath=py_files[0][1],
+                    menu_idname="FESTIVITY_FLOW_MT_presets",
                 )
-                if py_files:
-                    bpy.ops.script.execute_preset(
-                        filepath=os.path.join(preset_dir[0], py_files[0]),
-                        menu_idname="FESTIVITY_FLOW_MT_presets",
-                    )
 
         return {"FINISHED"}
 
@@ -271,32 +272,62 @@ class FESTIVITY_FLOW_OT_preset_add(AddPresetBase, Operator):
         options={"SKIP_SAVE"},
     )
 
+    def _user_presets(self, context):
+        import os
+        preset_dir = os.path.join(bpy.utils.script_path_user(), "presets", self.preset_subdir)
+        items = []
+        if os.path.isdir(preset_dir):
+            for f in sorted(os.listdir(preset_dir)):
+                if f.endswith(".py"):
+                    display = f[:-3]
+                    items.append((display, display, ""))
+        if not items:
+            items.append(("NONE", "No user presets found", ""))
+        return items
+
+    preset_list: bpy.props.EnumProperty(
+        name="Preset",
+        description="Select a user preset to remove",
+        items=_user_presets,
+    )
+
+    def invoke(self, context, event):
+        if self.remove_active:
+            return context.window_manager.invoke_props_dialog(self, confirm_text="Remove")
+        return AddPresetBase.invoke(self, context, event)
+
+    def draw(self, context):
+        layout = self.layout
+        if self.remove_active:
+            layout.prop(self, "preset_list")
+        else:
+            layout.prop(self, "name")
+
     def execute(self, context):
+        import os
+        if self.remove_active:
+            if self.preset_list == "NONE":
+                return {'CANCELLED'}
+            preset_dir = os.path.join(bpy.utils.script_path_user(), "presets", self.preset_subdir)
+            filepath = os.path.join(preset_dir, self.preset_list + ".py")
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            return {'FINISHED'}
+        return AddPresetBase.execute(self, context)
+
+    def add(self, context, filepath):
         bone = context.active_pose_bone
         if not bone or not bone.festivity_flow_has_sway:
             self.report({'ERROR'}, "No active sway bone")
-            return {'CANCELLED'}
-
-        if not self.name:
-            self.report({'ERROR'}, "You need to add a preset name")
-            return {'CANCELLED'}
-
-        preset_dir = bpy.utils.preset_paths(self.preset_subdir)
-        if not preset_dir:
-            self.report({'ERROR'}, "Could not find preset directory")
-            return {'CANCELLED'}
-
-        dirpath = preset_dir[0]
-        if not os.path.isdir(dirpath):
-            os.makedirs(dirpath)
-
-        filepath = os.path.join(dirpath, self.name + ".py")
+            return
 
         props = [
             "festivity_flow_sw_amplitude", "festivity_flow_sw_frequency", "festivity_flow_sw_delay",
+            "festivity_flow_sw_delay_opposite",
             "festivity_flow_sw_offset", "festivity_flow_sw_falloff_start", "festivity_flow_sw_speed",
             "festivity_flow_sw_sub_amplitude", "festivity_flow_sw_sub_frequency",
-            "festivity_flow_sw_sub_delay", "festivity_flow_sw_sub_falloff_start",
+            "festivity_flow_sw_sub_delay", "festivity_flow_sw_sub_delay_opposite",
+            "festivity_flow_sw_sub_falloff_start",
         ]
 
         with open(filepath, 'w', encoding='utf-8') as f:
@@ -312,15 +343,6 @@ class FESTIVITY_FLOW_OT_preset_add(AddPresetBase, Operator):
             f.write("    for attr, value in settings.items():\n")
             f.write("        setattr(pb, attr, value)\n")
             f.write("    pb.festivity_flow_update = True\n")
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "name")
 
 
 class FESTIVITY_FLOW_OT_batch_offset(Operator):
