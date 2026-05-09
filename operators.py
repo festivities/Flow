@@ -10,8 +10,8 @@ import os
 #
 
 
-class FLOW_OT_add_sway(Operator):
-    bl_idname = "flow.add_sway"
+class FESTIVITY_FLOW_OT_add_sway(Operator):
+    bl_idname = "festivity_flow.add_sway"
     bl_label = "Add Sway Chain"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
     bl_description = "Adds procedural sine-wave sway animation to selected bone chains using drivers"
@@ -54,14 +54,14 @@ class FLOW_OT_add_sway(Operator):
                 if py_files:
                     bpy.ops.script.execute_preset(
                         filepath=os.path.join(preset_dir[0], py_files[0]),
-                        menu_idname="FLOW_MT_presets",
+                        menu_idname="FESTIVITY_FLOW_MT_presets",
                     )
 
         return {"FINISHED"}
 
 
-class FLOW_OT_remove_sway(Operator):
-    bl_idname = "flow.remove_sway"
+class FESTIVITY_FLOW_OT_remove_sway(Operator):
+    bl_idname = "festivity_flow.remove_sway"
     bl_label = "Remove Sway Chain"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
     bl_description = "Removes sway chain drivers and properties from selected bones"
@@ -76,15 +76,15 @@ class FLOW_OT_remove_sway(Operator):
 
                 clear_sway_drivers(rig, pb)
 
-                pb.flow_has_sway = False
-                pb.flow_end_of_chain = False
-                pb.flow_chain_id = ""
+                pb.festivity_flow_has_sway = False
+                pb.festivity_flow_end_of_chain = False
+                pb.festivity_flow_chain_id = ""
 
         return {"FINISHED"}
 
 
-class FLOW_OT_bake_sway(Operator):
-    bl_idname = "flow.bake_sway"
+class FESTIVITY_FLOW_OT_bake_sway(Operator):
+    bl_idname = "festivity_flow.bake_sway"
     bl_label = "Bake to Keyframes"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
     bl_description = "Bake sway driver animation to keyframes on rotation channels"
@@ -189,7 +189,7 @@ class FLOW_OT_bake_sway(Operator):
             for b_dat in chain:
                 rig = b_dat[0]
                 pb = rig.pose.bones[b_dat[1]]
-                pb.flow_update = False
+                pb.festivity_flow_update = False
                 clear_sway_drivers(rig, pb)
 
         # Insert baked keyframes
@@ -233,10 +233,10 @@ class FLOW_OT_bake_sway(Operator):
         for chain in sim_chains:
             for b_dat in chain:
                 pb = b_dat[0].pose.bones[b_dat[1]]
-                pb.flow_has_sway = False
-                pb.flow_end_of_chain = False
-                pb.flow_chain_id = ""
-                pb.flow_update = True
+                pb.festivity_flow_has_sway = False
+                pb.festivity_flow_end_of_chain = False
+                pb.festivity_flow_chain_id = ""
+                pb.festivity_flow_update = True
 
         return {"FINISHED"}
 
@@ -249,19 +249,19 @@ class FLOW_OT_bake_sway(Operator):
         row.prop(self, "sep_action")
 
 
-class FLOW_MT_presets(Menu):
+class FESTIVITY_FLOW_MT_presets(Menu):
     bl_label = "Sway Presets"
-    bl_idname = "FLOW_MT_presets"
+    bl_idname = "FESTIVITY_FLOW_MT_presets"
     preset_subdir = "festivity_flow"
     preset_operator = "script.execute_preset"
     draw = Menu.draw_preset
 
 
-class FLOW_OT_preset_add(AddPresetBase, Operator):
+class FESTIVITY_FLOW_OT_preset_add(AddPresetBase, Operator):
     """Save current sway settings as a preset"""
-    bl_idname = "flow.preset_add"
+    bl_idname = "festivity_flow.preset_add"
     bl_label = "Add Sway Preset"
-    preset_menu = "FLOW_MT_presets"
+    preset_menu = "FESTIVITY_FLOW_MT_presets"
     preset_subdir = "festivity_flow"
 
     name: bpy.props.StringProperty(
@@ -273,7 +273,7 @@ class FLOW_OT_preset_add(AddPresetBase, Operator):
 
     def execute(self, context):
         bone = context.active_pose_bone
-        if not bone or not bone.flow_has_sway:
+        if not bone or not bone.festivity_flow_has_sway:
             self.report({'ERROR'}, "No active sway bone")
             return {'CANCELLED'}
 
@@ -293,10 +293,10 @@ class FLOW_OT_preset_add(AddPresetBase, Operator):
         filepath = os.path.join(dirpath, self.name + ".py")
 
         props = [
-            "flow_sw_amplitude", "flow_sw_frequency", "flow_sw_delay",
-            "flow_sw_offset", "flow_sw_falloff_start", "flow_sw_speed",
-            "flow_sw_sub_amplitude", "flow_sw_sub_frequency",
-            "flow_sw_sub_delay", "flow_sw_sub_falloff_start",
+            "festivity_flow_sw_amplitude", "festivity_flow_sw_frequency", "festivity_flow_sw_delay",
+            "festivity_flow_sw_offset", "festivity_flow_sw_falloff_start", "festivity_flow_sw_speed",
+            "festivity_flow_sw_sub_amplitude", "festivity_flow_sw_sub_frequency",
+            "festivity_flow_sw_sub_delay", "festivity_flow_sw_sub_falloff_start",
         ]
 
         with open(filepath, 'w', encoding='utf-8') as f:
@@ -306,12 +306,12 @@ class FLOW_OT_preset_add(AddPresetBase, Operator):
                 f.write(f"    '{p}': {getattr(bone, p)!r},\n")
             f.write("}\n\n")
             f.write("for pb in bpy.context.selected_pose_bones:\n")
-            f.write("    if not pb.flow_has_sway:\n")
+            f.write("    if not pb.festivity_flow_has_sway:\n")
             f.write("        continue\n")
-            f.write("    pb.flow_update = False\n")
+            f.write("    pb.festivity_flow_update = False\n")
             f.write("    for attr, value in settings.items():\n")
             f.write("        setattr(pb, attr, value)\n")
-            f.write("    pb.flow_update = True\n")
+            f.write("    pb.festivity_flow_update = True\n")
 
         return {'FINISHED'}
 
@@ -323,8 +323,8 @@ class FLOW_OT_preset_add(AddPresetBase, Operator):
         layout.prop(self, "name")
 
 
-class FLOW_OT_batch_offset(Operator):
-    bl_idname = "flow.batch_offset"
+class FESTIVITY_FLOW_OT_batch_offset(Operator):
+    bl_idname = "festivity_flow.batch_offset"
     bl_label = "Batch Offset"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
     bl_description = "Apply an incremental offset to all selected sway chains"
@@ -340,14 +340,14 @@ class FLOW_OT_batch_offset(Operator):
 
     def execute(self, context):
         prefs = context.preferences.addons[__package__].preferences
-        increment = prefs.flow_batch_offset_increment
+        increment = prefs.festivity_flow_batch_offset_increment
 
         chain_info = {}  # chain_id -> (selection_order, representative_bone)
         for pb in context.selected_pose_bones:
-            if not pb.flow_has_sway or not pb.flow_chain_id:
+            if not pb.festivity_flow_has_sway or not pb.festivity_flow_chain_id:
                 continue
-            cid = pb.flow_chain_id
-            order = pb.flow_selection_order
+            cid = pb.festivity_flow_chain_id
+            order = pb.festivity_flow_selection_order
             if cid not in chain_info or order < chain_info[cid][0]:
                 chain_info[cid] = (order, pb)
 
@@ -361,7 +361,7 @@ class FLOW_OT_batch_offset(Operator):
             sorted_items = sorted(chain_info.items(), key=lambda x: x[0])
         chains, bones = zip(*[(cid, info[1]) for cid, info in sorted_items])
 
-        attr = "flow_sw_sub_offset" if self.mode == 'SUB' else "flow_sw_offset"
+        attr = "festivity_flow_sw_sub_offset" if self.mode == 'SUB' else "festivity_flow_sw_offset"
 
         skip_rigs = []
         for i, pb in enumerate(bones):
@@ -370,20 +370,20 @@ class FLOW_OT_batch_offset(Operator):
             skip_rigs.append(pb.id_data)
 
             for c_pb in pb.id_data.pose.bones:
-                if c_pb.flow_chain_id in chains and c_pb.flow_has_sway:
+                if c_pb.festivity_flow_chain_id in chains and c_pb.festivity_flow_has_sway:
                     try:
-                        chain_idx = chains.index(c_pb.flow_chain_id)
+                        chain_idx = chains.index(c_pb.festivity_flow_chain_id)
                     except ValueError:
                         continue
-                    c_pb.flow_update = False
+                    c_pb.festivity_flow_update = False
                     setattr(c_pb, attr, chain_idx * increment)
-                    c_pb.flow_update = True
+                    c_pb.festivity_flow_update = True
 
         return {"FINISHED"}
 
 
-class FLOW_OT_adjust_offset(Operator):
-    bl_idname = "flow.adjust_offset"
+class FESTIVITY_FLOW_OT_adjust_offset(Operator):
+    bl_idname = "festivity_flow.adjust_offset"
     bl_label = "Adjust Offset"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
     bl_description = "Add, subtract, or set the offset of selected sway chains"
@@ -409,9 +409,9 @@ class FLOW_OT_adjust_offset(Operator):
 
     def execute(self, context):
         prefs = context.preferences.addons[__package__].preferences
-        adjust_value = prefs.flow_offset_adjust_value
+        adjust_value = prefs.festivity_flow_offset_adjust_value
 
-        attr = "flow_sw_sub_offset" if self.target == 'SUB' else "flow_sw_offset"
+        attr = "festivity_flow_sw_sub_offset" if self.target == 'SUB' else "festivity_flow_sw_offset"
 
         sim_chains = get_selected_bone_chains(context.selected_pose_bones)
 
@@ -433,15 +433,15 @@ class FLOW_OT_adjust_offset(Operator):
                 else:
                     new_val = adjust_value
 
-                pb.flow_update = False
+                pb.festivity_flow_update = False
                 setattr(pb, attr, new_val)
-                pb.flow_update = True
+                pb.festivity_flow_update = True
 
         return {"FINISHED"}
 
 
-class FLOW_OT_adjust_roll(Operator):
-    bl_idname = "flow.adjust_roll"
+class FESTIVITY_FLOW_OT_adjust_roll(Operator):
+    bl_idname = "festivity_flow.adjust_roll"
     bl_label = "Adjust Roll"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
     bl_description = "Add or set the y-axis sway roll of selected sway chains"
@@ -475,17 +475,17 @@ class FLOW_OT_adjust_roll(Operator):
                 if self.mode == 'SET':
                     new_val = self.value
                 else:
-                    new_val = pb.flow_sw_roll + self.value
+                    new_val = pb.festivity_flow_sw_roll + self.value
 
-                pb.flow_update = False
-                pb.flow_sw_roll = new_val
-                pb.flow_update = True
+                pb.festivity_flow_update = False
+                pb.festivity_flow_sw_roll = new_val
+                pb.festivity_flow_update = True
 
         return {"FINISHED"}
 
 
-class FLOW_OT_flip_roll(Operator):
-    bl_idname = "flow.flip_roll"
+class FESTIVITY_FLOW_OT_flip_roll(Operator):
+    bl_idname = "festivity_flow.flip_roll"
     bl_label = "Flip Roll"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
     bl_description = "Flip the y-axis sway roll by 180 degrees (subtract if positive, add if negative)"
@@ -502,7 +502,7 @@ class FLOW_OT_flip_roll(Operator):
                 rig = b_dat[0]
                 pb = rig.pose.bones[b_dat[1]]
 
-                current = pb.flow_sw_roll
+                current = pb.festivity_flow_sw_roll
                 if current > 0:
                     new_val = current - 180.0
                 elif current < 0:
@@ -510,9 +510,9 @@ class FLOW_OT_flip_roll(Operator):
                 else:
                     new_val = current + 180.0
 
-                pb.flow_update = False
-                pb.flow_sw_roll = new_val
-                pb.flow_update = True
+                pb.festivity_flow_update = False
+                pb.festivity_flow_sw_roll = new_val
+                pb.festivity_flow_update = True
 
         return {"FINISHED"}
 
@@ -523,15 +523,15 @@ class FLOW_OT_flip_roll(Operator):
 
 
 _classes = [
-    FLOW_OT_add_sway,
-    FLOW_OT_remove_sway,
-    FLOW_OT_bake_sway,
-    FLOW_MT_presets,
-    FLOW_OT_preset_add,
-    FLOW_OT_batch_offset,
-    FLOW_OT_adjust_offset,
-    FLOW_OT_adjust_roll,
-    FLOW_OT_flip_roll,
+    FESTIVITY_FLOW_OT_add_sway,
+    FESTIVITY_FLOW_OT_remove_sway,
+    FESTIVITY_FLOW_OT_bake_sway,
+    FESTIVITY_FLOW_MT_presets,
+    FESTIVITY_FLOW_OT_preset_add,
+    FESTIVITY_FLOW_OT_batch_offset,
+    FESTIVITY_FLOW_OT_adjust_offset,
+    FESTIVITY_FLOW_OT_adjust_roll,
+    FESTIVITY_FLOW_OT_flip_roll,
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

@@ -17,7 +17,7 @@ def _draw_sway_arrows():
             context.active_object.type == 'ARMATURE' and
             context.mode == 'POSE' and
             context.active_pose_bone):
-        active_chain_id = context.active_pose_bone.flow_chain_id
+        active_chain_id = context.active_pose_bone.festivity_flow_chain_id
 
     active_main = []
     active_sub = []
@@ -33,17 +33,17 @@ def _draw_sway_arrows():
         mat_world_rot = ob.matrix_world.to_3x3()
 
         for pb in ob.pose.bones:
-            if not pb.flow_has_sway:
+            if not pb.festivity_flow_has_sway:
                 continue
 
-            is_active = (pb.flow_chain_id == active_chain_id)
+            is_active = (pb.festivity_flow_chain_id == active_chain_id)
 
             bone_head = ob.matrix_world @ pb.matrix.translation
             bone_x = (mat_world_rot @ pb.x_axis).normalized()
             bone_y = (mat_world_rot @ pb.y_axis).normalized()
             bone_z = (mat_world_rot @ pb.z_axis).normalized()
 
-            roll_rad = math.radians(get_root_from_sway_bone(pb).flow_sw_roll)
+            roll_rad = math.radians(get_root_from_sway_bone(pb).festivity_flow_sw_roll)
             sr = math.sin(roll_rad)
             cr = math.cos(roll_rad)
 
@@ -102,7 +102,7 @@ def disable_sway_visualizer():
 
 def register():
     prefs = bpy.context.preferences.addons[__package__].preferences
-    if prefs.flow_show_sway_visualizer:
+    if prefs.festivity_flow_show_sway_visualizer:
         enable_sway_visualizer()
 
 

@@ -90,16 +90,16 @@ def get_bone_chains(bones):
 def get_selected_bone_chains(bones, only_active=False):
     chains, skip_bones = [], []
     for pb in bones:
-        if pb.flow_has_sway and pb.name not in skip_bones:
-            if only_active and bpy.context.active_pose_bone.flow_chain_id != pb.flow_chain_id:
+        if pb.festivity_flow_has_sway and pb.name not in skip_bones:
+            if only_active and bpy.context.active_pose_bone.festivity_flow_chain_id != pb.festivity_flow_chain_id:
                 continue
 
             chain = [[pb.id_data, pb.name]]
 
             for par in pb.parent_recursive:
-                if par.flow_has_sway and par.flow_chain_id == pb.flow_chain_id:
+                if par.festivity_flow_has_sway and par.festivity_flow_chain_id == pb.festivity_flow_chain_id:
                     chain.insert(0, [par.id_data, par.name])
-                    if par.flow_end_of_chain:
+                    if par.festivity_flow_end_of_chain:
                         break
                 else:
                     break
@@ -109,8 +109,8 @@ def get_selected_bone_chains(bones, only_active=False):
             while searching:
                 search_len = len(chain)
                 for child in search_pb.children:
-                    if child.flow_has_sway and child.flow_chain_id == pb.flow_chain_id:
-                        if child.flow_end_of_chain == False:
+                    if child.festivity_flow_has_sway and child.festivity_flow_chain_id == pb.festivity_flow_chain_id:
+                        if child.festivity_flow_end_of_chain == False:
                             chain.append([child.id_data, child.name])
                             search_pb = child
                             break
@@ -139,11 +139,11 @@ def get_root_from_sway_bone(pb):
 
 
 def _get_sway_target_name(rig, pb):
-    return f"FLOW_SwayTarget_{rig.name}_{pb.name}"
+    return f"FESTIVITY_FLOW_SwayTarget_{rig.name}_{pb.name}"
 
 
 def _get_sway_constraint_name():
-    return "FLOW_Sway"
+    return "FESTIVITY_FLOW_Sway"
 
 
 def _ensure_sway_target(rig, pb):
@@ -223,9 +223,9 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     """Add a single sway driver to the hidden helper target."""
     chain_root = pb
     for par in pb.parent_recursive:
-        if par.flow_has_sway and par.flow_chain_id == pb.flow_chain_id:
+        if par.festivity_flow_has_sway and par.festivity_flow_chain_id == pb.festivity_flow_chain_id:
             chain_root = par
-            if par.flow_end_of_chain:
+            if par.festivity_flow_end_of_chain:
                 break
         else:
             break
@@ -246,31 +246,31 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_frequency'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_frequency'
         v = fc_mo.driver.variables.new()
         v.name = "sp"
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_speed'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_speed'
         v = fc_mo.driver.variables.new()
         v.name = "dly"
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_delay'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_delay'
         v = fc_mo.driver.variables.new()
         v.name = "off"
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_offset'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_offset'
         v = fc_mo.driver.variables.new()
         v.name = "rs"
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_random_seed'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_random_seed'
         fc_mo.driver.expression = f"sin(2*pi*frq*sp*(frame+dly*{f2_const}+rs*{fps})/{fps}+off/{fps})"
 
         fc_so = sway_target.driver_add('["_sw_so"]')
@@ -280,31 +280,31 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_sub_frequency'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_sub_frequency'
         v = fc_so.driver.variables.new()
         v.name = "sp"
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_speed'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_speed'
         v = fc_so.driver.variables.new()
         v.name = "d2"
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_sub_delay'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_sub_delay'
         v = fc_so.driver.variables.new()
         v.name = "o2"
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_sub_offset'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_sub_offset'
         v = fc_so.driver.variables.new()
         v.name = "rs"
         v.type = 'SINGLE_PROP'
         v.targets[0].id_type = 'OBJECT'
         v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.flow_sw_random_seed'
+        v.targets[0].data_path = root_path + '.festivity_flow_sw_random_seed'
         fc_so.driver.expression = f"sin(2*pi*f2*sp*(frame+d2*{f2_const}+rs*{fps})/{fps}+o2/{fps})"
 
     fc = sway_target.driver_add("rotation_euler", axis_index)
@@ -316,140 +316,140 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     var_marker.type = 'SINGLE_PROP'
     var_marker.targets[0].id_type = 'OBJECT'
     var_marker.targets[0].id = rig
-    var_marker.targets[0].data_path = root_path + '.flow_has_sway'
+    var_marker.targets[0].data_path = root_path + '.festivity_flow_has_sway'
 
     var_amp = drv.variables.new()
     var_amp.name = "amp"
     var_amp.type = 'SINGLE_PROP'
     var_amp.targets[0].id_type = 'OBJECT'
     var_amp.targets[0].id = rig
-    var_amp.targets[0].data_path = root_path + '.flow_sw_amplitude'
+    var_amp.targets[0].data_path = root_path + '.festivity_flow_sw_amplitude'
 
     var_frq = drv.variables.new()
     var_frq.name = "frq"
     var_frq.type = 'SINGLE_PROP'
     var_frq.targets[0].id_type = 'OBJECT'
     var_frq.targets[0].id = rig
-    var_frq.targets[0].data_path = root_path + '.flow_sw_frequency'
+    var_frq.targets[0].data_path = root_path + '.festivity_flow_sw_frequency'
 
     var_dly = drv.variables.new()
     var_dly.name = "dly"
     var_dly.type = 'SINGLE_PROP'
     var_dly.targets[0].id_type = 'OBJECT'
     var_dly.targets[0].id = rig
-    var_dly.targets[0].data_path = root_path + '.flow_sw_delay'
+    var_dly.targets[0].data_path = root_path + '.festivity_flow_sw_delay'
 
     var_off = drv.variables.new()
     var_off.name = "off"
     var_off.type = 'SINGLE_PROP'
     var_off.targets[0].id_type = 'OBJECT'
     var_off.targets[0].id = rig
-    var_off.targets[0].data_path = root_path + '.flow_sw_offset'
+    var_off.targets[0].data_path = root_path + '.festivity_flow_sw_offset'
 
     var_fo = drv.variables.new()
     var_fo.name = "fo"
     var_fo.type = 'SINGLE_PROP'
     var_fo.targets[0].id_type = 'OBJECT'
     var_fo.targets[0].id = rig
-    var_fo.targets[0].data_path = root_path + '.flow_sw_falloff_start'
+    var_fo.targets[0].data_path = root_path + '.festivity_flow_sw_falloff_start'
 
     var_amp2 = drv.variables.new()
     var_amp2.name = "a2"
     var_amp2.type = 'SINGLE_PROP'
     var_amp2.targets[0].id_type = 'OBJECT'
     var_amp2.targets[0].id = rig
-    var_amp2.targets[0].data_path = root_path + '.flow_sw_sub_amplitude'
+    var_amp2.targets[0].data_path = root_path + '.festivity_flow_sw_sub_amplitude'
 
     var_frq2 = drv.variables.new()
     var_frq2.name = "f2"
     var_frq2.type = 'SINGLE_PROP'
     var_frq2.targets[0].id_type = 'OBJECT'
     var_frq2.targets[0].id = rig
-    var_frq2.targets[0].data_path = root_path + '.flow_sw_sub_frequency'
+    var_frq2.targets[0].data_path = root_path + '.festivity_flow_sw_sub_frequency'
 
     var_dly2 = drv.variables.new()
     var_dly2.name = "d2"
     var_dly2.type = 'SINGLE_PROP'
     var_dly2.targets[0].id_type = 'OBJECT'
     var_dly2.targets[0].id = rig
-    var_dly2.targets[0].data_path = root_path + '.flow_sw_sub_delay'
+    var_dly2.targets[0].data_path = root_path + '.festivity_flow_sw_sub_delay'
 
     var_off2 = drv.variables.new()
     var_off2.name = "o2"
     var_off2.type = 'SINGLE_PROP'
     var_off2.targets[0].id_type = 'OBJECT'
     var_off2.targets[0].id = rig
-    var_off2.targets[0].data_path = root_path + '.flow_sw_sub_offset'
+    var_off2.targets[0].data_path = root_path + '.festivity_flow_sw_sub_offset'
 
     var_fo2 = drv.variables.new()
     var_fo2.name = "g2"
     var_fo2.type = 'SINGLE_PROP'
     var_fo2.targets[0].id_type = 'OBJECT'
     var_fo2.targets[0].id = rig
-    var_fo2.targets[0].data_path = root_path + '.flow_sw_sub_falloff_start'
+    var_fo2.targets[0].data_path = root_path + '.festivity_flow_sw_sub_falloff_start'
 
     var_sp = drv.variables.new()
     var_sp.name = "sp"
     var_sp.type = 'SINGLE_PROP'
     var_sp.targets[0].id_type = 'OBJECT'
     var_sp.targets[0].id = rig
-    var_sp.targets[0].data_path = root_path + '.flow_sw_speed'
+    var_sp.targets[0].data_path = root_path + '.festivity_flow_sw_speed'
 
     var_rs = drv.variables.new()
     var_rs.name = "rs"
     var_rs.type = 'SINGLE_PROP'
     var_rs.targets[0].id_type = 'OBJECT'
     var_rs.targets[0].id = rig
-    var_rs.targets[0].data_path = root_path + '.flow_sw_random_seed'
+    var_rs.targets[0].data_path = root_path + '.festivity_flow_sw_random_seed'
 
     var_rl = drv.variables.new()
     var_rl.name = "rl"
     var_rl.type = 'SINGLE_PROP'
     var_rl.targets[0].id_type = 'OBJECT'
     var_rl.targets[0].id = rig
-    var_rl.targets[0].data_path = root_path + '.flow_sw_roll'
+    var_rl.targets[0].data_path = root_path + '.festivity_flow_sw_roll'
 
     var_bm = drv.variables.new()
     var_bm.name = "bm"
     var_bm.type = 'SINGLE_PROP'
     var_bm.targets[0].id_type = 'OBJECT'
     var_bm.targets[0].id = rig
-    var_bm.targets[0].data_path = root_path + '.flow_sw_bias'
+    var_bm.targets[0].data_path = root_path + '.festivity_flow_sw_bias'
 
     var_bs = drv.variables.new()
     var_bs.name = "bs"
     var_bs.type = 'SINGLE_PROP'
     var_bs.targets[0].id_type = 'OBJECT'
     var_bs.targets[0].id = rig
-    var_bs.targets[0].data_path = root_path + '.flow_sw_sub_bias'
+    var_bs.targets[0].data_path = root_path + '.festivity_flow_sw_sub_bias'
 
     var_lmp = drv.variables.new()
     var_lmp.name = "lmp"
     var_lmp.type = 'SINGLE_PROP'
     var_lmp.targets[0].id_type = 'OBJECT'
     var_lmp.targets[0].id = rig
-    var_lmp.targets[0].data_path = root_path + '.flow_sw_limit_pos'
+    var_lmp.targets[0].data_path = root_path + '.festivity_flow_sw_limit_pos'
 
     var_lmn = drv.variables.new()
     var_lmn.name = "lmn"
     var_lmn.type = 'SINGLE_PROP'
     var_lmn.targets[0].id_type = 'OBJECT'
     var_lmn.targets[0].id = rig
-    var_lmn.targets[0].data_path = root_path + '.flow_sw_limit_neg'
+    var_lmn.targets[0].data_path = root_path + '.festivity_flow_sw_limit_neg'
 
     var_lsp = drv.variables.new()
     var_lsp.name = "lsp"
     var_lsp.type = 'SINGLE_PROP'
     var_lsp.targets[0].id_type = 'OBJECT'
     var_lsp.targets[0].id = rig
-    var_lsp.targets[0].data_path = root_path + '.flow_sw_sub_limit_pos'
+    var_lsp.targets[0].data_path = root_path + '.festivity_flow_sw_sub_limit_pos'
 
     var_lsn = drv.variables.new()
     var_lsn.name = "lsn"
     var_lsn.type = 'SINGLE_PROP'
     var_lsn.targets[0].id_type = 'OBJECT'
     var_lsn.targets[0].id = rig
-    var_lsn.targets[0].data_path = root_path + '.flow_sw_sub_limit_neg'
+    var_lsn.targets[0].data_path = root_path + '.festivity_flow_sw_sub_limit_neg'
 
     var_mo = drv.variables.new()
     var_mo.name = "mo"
@@ -498,9 +498,9 @@ def create_sway_chains(chains):
         for ob in bpy.context.view_layer.objects:
             if ob.type == "ARMATURE":
                 for pb in ob.pose.bones:
-                    if pb.flow_has_sway and pb.flow_chain_id:
+                    if pb.festivity_flow_has_sway and pb.festivity_flow_chain_id:
                         try:
-                            cur_num = int(pb.flow_chain_id)
+                            cur_num = int(pb.festivity_flow_chain_id)
                             if next_num < cur_num:
                                 next_num = cur_num
                         except:
@@ -516,16 +516,16 @@ def create_sway_chains(chains):
             clear_sway_drivers(rig, bone)
             sway_target = _ensure_sway_target(rig, bone)
 
-            bone.flow_has_sway = True
-            bone.flow_chain_id = num
-            bone.flow_end_of_chain = cc == 0
+            bone.festivity_flow_has_sway = True
+            bone.festivity_flow_chain_id = num
+            bone.festivity_flow_end_of_chain = cc == 0
 
             _ensure_sway_constraint(bone, sway_target)
 
         root_bone = chain[-1][0].pose.bones[chain[-1][1]]
 
-        if root_bone.flow_sw_random_seed == 0.0:
-            root_bone["flow_sw_random_seed"] = random.uniform(-2.0, 2.0)
+        if root_bone.festivity_flow_sw_random_seed == 0.0:
+            root_bone["festivity_flow_sw_random_seed"] = random.uniform(-2.0, 2.0)
 
         for cc, c_dat in enumerate(chain[::-1]):
             rig = c_dat[0]
@@ -546,15 +546,15 @@ def create_sway_chains(chains):
 
 def rebuild_sway_drivers(bone):
     """Rebuild all sway drivers for the chain containing the given bone."""
-    if not bone.flow_has_sway:
+    if not bone.festivity_flow_has_sway:
         return
 
     rig = bone.id_data
-    chain_id = bone.flow_chain_id
+    chain_id = bone.festivity_flow_chain_id
 
     chain_bones = []
     for pb in rig.pose.bones:
-        if pb.flow_has_sway and pb.flow_chain_id == chain_id:
+        if pb.festivity_flow_has_sway and pb.festivity_flow_chain_id == chain_id:
             chain_bones.append(pb)
 
     if len(chain_bones) == 0:
@@ -562,7 +562,7 @@ def rebuild_sway_drivers(bone):
 
     root_bone = None
     for pb in chain_bones:
-        if pb.flow_end_of_chain:
+        if pb.festivity_flow_end_of_chain:
             root_bone = pb
             break
 
@@ -597,25 +597,25 @@ def rebuild_sway_drivers(bone):
 def bone_has_custom_sway_settings(pb):
     """Return True when a pose bone has sway settings that differ from the defaults."""
     sway_props = (
-        "flow_sw_amplitude",
-        "flow_sw_frequency",
-        "flow_sw_delay",
-        "flow_sw_offset",
-        "flow_sw_falloff_start",
-        "flow_sw_speed",
-        "flow_sw_random_seed",
-        "flow_sw_roll",
-        "flow_sw_sub_amplitude",
-        "flow_sw_sub_frequency",
-        "flow_sw_sub_delay",
-        "flow_sw_sub_offset",
-        "flow_sw_sub_falloff_start",
-        "flow_sw_bias",
-        "flow_sw_sub_bias",
-        "flow_sw_limit_pos",
-        "flow_sw_limit_neg",
-        "flow_sw_sub_limit_pos",
-        "flow_sw_sub_limit_neg",
+        "festivity_flow_sw_amplitude",
+        "festivity_flow_sw_frequency",
+        "festivity_flow_sw_delay",
+        "festivity_flow_sw_offset",
+        "festivity_flow_sw_falloff_start",
+        "festivity_flow_sw_speed",
+        "festivity_flow_sw_random_seed",
+        "festivity_flow_sw_roll",
+        "festivity_flow_sw_sub_amplitude",
+        "festivity_flow_sw_sub_frequency",
+        "festivity_flow_sw_sub_delay",
+        "festivity_flow_sw_sub_offset",
+        "festivity_flow_sw_sub_falloff_start",
+        "festivity_flow_sw_bias",
+        "festivity_flow_sw_sub_bias",
+        "festivity_flow_sw_limit_pos",
+        "festivity_flow_sw_limit_neg",
+        "festivity_flow_sw_sub_limit_pos",
+        "festivity_flow_sw_sub_limit_neg",
     )
 
     for prop_name in sway_props:
