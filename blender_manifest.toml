@@ -1,17 +1,29 @@
 schema_version = "1.0.0"
+
 id = "festivity_flow"
-version = "1.0.0"
+version = "1.1.0"
 name = "Flow"
 tagline = "One-click procedural wavy bone chain animation"
 maintainer = "festivity"
 type = "add-on"
+
+website = "https://github.com/festivities/Flow"
+
+tags = ["Animation"]
+
 blender_version_min = "5.0.0"
+
 license = [
   "SPDX:GPL-3.0-or-later",
 ]
-tags = ["Animation"]
-website = "https://github.com/festivities/Flow"
-support = "https://github.com/festivities/Flow/issues"
 
 [permissions]
-files = "Read and save custom presets to a .JSON"
+files = "Read and write preset files in the user scripts directory"
+
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  ".git",
+  "*.zip",
+  ".gitignore",
+]

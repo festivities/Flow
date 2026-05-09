@@ -1,9 +1,8 @@
-from .functions import get_bone_chains, get_selected_bone_chains, clear_sway_drivers, create_sway_chains, get_preset_data, apply_preset, bone_has_custom_sway_settings
-from bpy.types import Operator
+from .functions import get_bone_chains, get_selected_bone_chains, clear_sway_drivers, create_sway_chains, bone_has_custom_sway_settings
+from bpy.types import Operator, Menu
+from bl_operators.presets import AddPresetBase
 import bpy
 import os
-import json
-from pathlib import Path
 
 
 #
@@ -45,14 +44,18 @@ class FLOW_OT_add_sway(Operator):
         create_sway_chains(sim_chains)
 
         if len(preset_chains) > 0:
-            preset_data = get_preset_data()
-            if preset_data is not None:
-                apply_preset(
-                    preset_data,
-                    context.active_pose_bone,
-                    sim_chains=preset_chains,
-                    keep_existing_settings=False,
+            preset_dir = bpy.utils.preset_paths("festivity_flow")
+            if preset_dir and os.path.isdir(preset_dir[0]):
+                py_files = sorted(
+                    [f for f in os.listdir(preset_dir[0]) if f.endswith(".py")],
+                    key=lambda f: os.path.getmtime(os.path.join(preset_dir[0], f)),
+                    reverse=True,
                 )
+                if py_files:
+                    bpy.ops.script.execute_preset(
+                        filepath=os.path.join(preset_dir[0], py_files[0]),
+                        menu_idname="FLOW_MT_presets",
+                    )
 
         return {"FINISHED"}
 
@@ -246,162 +249,78 @@ class FLOW_OT_bake_sway(Operator):
         row.prop(self, "sep_action")
 
 
-class FLOW_OT_save_preset(Operator):
-    bl_idname = "flow.save_preset"
-    bl_label = "Save Preset"
-    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
-    bl_description = "Saves current bone settings as a new preset"
+class FLOW_MT_presets(Menu):
+    bl_label = "Sway Presets"
+    bl_idname = "FLOW_MT_presets"
+    preset_subdir = "festivity_flow"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
+
+
+class FLOW_OT_preset_add(AddPresetBase, Operator):
+    """Save current sway settings as a preset"""
+    bl_idname = "flow.preset_add"
+    bl_label = "Add Sway Preset"
+    preset_menu = "FLOW_MT_presets"
+    preset_subdir = "festivity_flow"
 
     name: bpy.props.StringProperty(
-        name="Preset Name",
+        name="Name",
         description="Name of the preset",
         default="",
-    )
-
-    description: bpy.props.StringProperty(
-        name="Preset Description",
-        description="Description of the preset",
-        default="",
-    )
-
-    chain_preset: bpy.props.BoolProperty(
-        name="Chain Preset",
-        description="This preset will save the value profile of the whole chain for the bone settings",
-        default=True,
+        options={"SKIP_SAVE"},
     )
 
     def execute(self, context):
+        bone = context.active_pose_bone
+        if not bone or not bone.flow_has_sway:
+            self.report({'ERROR'}, "No active sway bone")
+            return {'CANCELLED'}
 
-        if self.name == "":
-            self.report(
-                {"ERROR"},
-                "You need to add a preset name to save the preset",
-            )
-            return {"CANCELLED"}
+        if not self.name:
+            self.report({'ERROR'}, "You need to add a preset name")
+            return {'CANCELLED'}
 
-        pb = context.active_pose_bone
-        p_dat = {}
-        p_dat["Name"] = self.name
-        p_dat["Description"] = self.description
-        s_dat = {}
+        preset_dir = bpy.utils.preset_paths(self.preset_subdir)
+        if not preset_dir:
+            self.report({'ERROR'}, "Could not find preset directory")
+            return {'CANCELLED'}
 
+        dirpath = preset_dir[0]
+        if not os.path.isdir(dirpath):
+            os.makedirs(dirpath)
 
+        filepath = os.path.join(dirpath, self.name + ".py")
 
-        sim_chains = get_selected_bone_chains(context.selected_pose_bones_from_active_object, only_active=True)
-        for chain in sim_chains:
+        props = [
+            "flow_sw_amplitude", "flow_sw_frequency", "flow_sw_delay",
+            "flow_sw_offset", "flow_sw_falloff_start", "flow_sw_speed",
+            "flow_sw_sub_amplitude", "flow_sw_sub_frequency",
+            "flow_sw_sub_delay", "flow_sw_sub_falloff_start",
+        ]
 
-            s_dat["flow_sw_amplitude"] = pb.flow_sw_amplitude
-            s_dat["flow_sw_frequency"] = pb.flow_sw_frequency
-            s_dat["flow_sw_delay"] = pb.flow_sw_delay
-            s_dat["flow_sw_offset"] = pb.flow_sw_offset
-            s_dat["flow_sw_falloff_start"] = pb.flow_sw_falloff_start
-            s_dat["flow_sw_speed"] = pb.flow_sw_speed
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write("import bpy\n\n")
+            f.write("settings = {\n")
+            for p in props:
+                f.write(f"    '{p}': {getattr(bone, p)!r},\n")
+            f.write("}\n\n")
+            f.write("for pb in bpy.context.selected_pose_bones:\n")
+            f.write("    if not pb.flow_has_sway:\n")
+            f.write("        continue\n")
+            f.write("    pb.flow_update = False\n")
+            f.write("    for attr, value in settings.items():\n")
+            f.write("        setattr(pb, attr, value)\n")
+            f.write("    pb.flow_update = True\n")
 
-            s_dat["flow_sw_sub_amplitude"] = pb.flow_sw_sub_amplitude
-            s_dat["flow_sw_sub_frequency"] = pb.flow_sw_sub_frequency
-            s_dat["flow_sw_sub_delay"] = pb.flow_sw_sub_delay
-            s_dat["flow_sw_sub_falloff_start"] = pb.flow_sw_sub_falloff_start
-
-            preset_fp = Path(os.path.dirname(__file__)) / "presets" / "user_presets.json"
-
-            p_dat["Settings"] = s_dat
-
-            presets_data = {}
-            if os.path.exists(preset_fp):
-                presets_data = json.load(open(str(preset_fp)))
-
-            presets_data[self.name.replace(" ", "").upper()] = p_dat
-
-            preset_file = open(preset_fp, "w")
-
-            json.dump(presets_data, preset_file, indent=1, ensure_ascii=True)
-
-            preset_file.close()
-
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=800)
+        return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout
-
-        row = layout.row()
-        row.prop(self, "name")
-
-        row = layout.row()
-        row.prop(self, "description")
-
-        row = layout.row()
-        row.prop(self, "chain_preset")
-
-
-class FLOW_OT_delete_preset(Operator):
-    bl_idname = "flow.delete_preset"
-    bl_label = "Delete Preset"
-    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
-    bl_description = "Deletes the active preset"
-
-    def execute(self, context):
-        prefs = context.preferences.addons[__package__].preferences
-
-        preset_fp = Path(os.path.dirname(__file__)) / "presets" / "user_presets.json"
-        presets_enum = prefs.sw_presets
-
-        presets_data = {}
-        if os.path.exists(preset_fp):
-            presets_data = json.load(open(str(preset_fp)))
-
-            if presets_enum.replace(" ", "").upper() in presets_data.keys():
-                del presets_data[presets_enum.replace(" ", "").upper()]
-
-            preset_file = open(preset_fp, "w")
-
-            json.dump(presets_data, preset_file, indent=1, ensure_ascii=True)
-
-            preset_file.close()
-
-            presets_enum = 0
-
-        return {"FINISHED"}
-
-    def invoke(self, context, event):
-        prefs = context.preferences.addons[__package__].preferences
-        presets_enum = prefs.sw_presets
-
-        if presets_enum in ["DEFAULTSWAY",
-                            "GENTLEBREEZE",
-                            "HEAVYWIND",
-                            "PONYTAIL"]:
-            self.report(
-                {"ERROR"},
-                "Cannot delete the base presets",
-            )
-            return {"CANCELLED"}
-
-        return context.window_manager.invoke_props_dialog(self, width=400, confirm_text="Delete Preset? Cannot be recovered")
-
-
-class FLOW_OT_apply_preset(Operator):
-    bl_idname = "flow.apply_preset"
-    bl_label = "Apply Preset"
-    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
-    bl_description = "Applies the active preset to the selected bone chains"
-
-    def execute(self, context):
-        pb = context.active_pose_bone
-
-        preset_data = get_preset_data()
-        if preset_data is None:
-            self.report(
-                {"ERROR"},
-                "Active Pose Bone has no sway physics",
-            )
-            return {"CANCELLED"}
-
-        apply_preset(preset_data, pb)
-
-        return {"FINISHED"}
+        layout.prop(self, "name")
 
 
 class FLOW_OT_batch_offset(Operator):
@@ -607,9 +526,8 @@ _classes = [
     FLOW_OT_add_sway,
     FLOW_OT_remove_sway,
     FLOW_OT_bake_sway,
-    FLOW_OT_save_preset,
-    FLOW_OT_delete_preset,
-    FLOW_OT_apply_preset,
+    FLOW_MT_presets,
+    FLOW_OT_preset_add,
     FLOW_OT_batch_offset,
     FLOW_OT_adjust_offset,
     FLOW_OT_adjust_roll,

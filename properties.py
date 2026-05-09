@@ -1,9 +1,5 @@
-from .functions import load_presets
 from bpy.types import AddonPreferences
 import bpy
-import os
-import json
-from pathlib import Path
 
 # Selection order tracking cache: {(armature_name, bone_name): bool}
 _last_select_state = {}
@@ -28,6 +24,15 @@ def _flow_track_selection(scene, depsgraph):
             _last_select_state[key] = is_sel
         if changed:
             arm_obj['_flow_sel_counter'] = counter
+
+
+@bpy.app.handlers.persistent
+def _flow_reset_on_undo(scene):
+    global _last_select_state
+    _last_select_state.clear()
+    for arm_obj in bpy.data.objects:
+        if arm_obj.type == 'ARMATURE' and '_flow_sel_counter' in arm_obj:
+            del arm_obj['_flow_sel_counter']
 
 
 #
@@ -177,20 +182,8 @@ def update_sway_visualizer(self, context):
 #
 
 
-def get_sw_presets(self, context):
-    preset_fp = Path(os.path.dirname(__file__)) / "presets" / "default_presets.json"
-    user_preset_fp = Path(os.path.dirname(__file__)) / "presets" / "user_presets.json"
-
-    return load_presets(preset_fp) + load_presets(user_preset_fp)
-
-
 class FlowPreferences(AddonPreferences):
     bl_idname = __package__
-
-    sw_presets: bpy.props.EnumProperty(
-        name="Sway Chain Presets",
-        items=get_sw_presets,
-    )
 
     apply_to_all_chains: bpy.props.BoolProperty(
         default=True,
@@ -254,19 +247,6 @@ class FlowPreferences(AddonPreferences):
         row.prop(self, "keep_existing_settings")
 
 
-def _ensure_default_sw_preset():
-    addon = bpy.context.preferences.addons.get(__package__)
-    if addon is None:
-        return
-
-    prefs = addon.preferences
-    preset_items = get_sw_presets(None, None)
-    valid_ids = {item[0] for item in preset_items}
-
-    if "DEFAULTSWAY" in valid_ids and prefs.sw_presets not in valid_ids:
-        prefs.sw_presets = "DEFAULTSWAY"
-
-
 #
 # PROPERTY REGISTRATION
 #
@@ -281,7 +261,6 @@ _register, _unregister = bpy.utils.register_classes_factory(_classes)
 
 def register():
     _register()
-    _ensure_default_sw_preset()
 
     bpy.types.PoseBone.flow_has_sway = bpy.props.BoolProperty(
         default=False, options={"LIBRARY_EDITABLE"}, override={"LIBRARY_OVERRIDABLE"}
@@ -486,6 +465,7 @@ def register():
     )
 
     bpy.app.handlers.depsgraph_update_post.append(_flow_track_selection)
+    bpy.app.handlers.undo_post.append(_flow_reset_on_undo)
 
 
 def unregister():
@@ -493,6 +473,9 @@ def unregister():
 
     if _flow_track_selection in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.remove(_flow_track_selection)
+
+    if _flow_reset_on_undo in bpy.app.handlers.undo_post:
+        bpy.app.handlers.undo_post.remove(_flow_reset_on_undo)
 
     del bpy.types.PoseBone.flow_selection_order
 
