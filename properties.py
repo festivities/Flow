@@ -292,7 +292,7 @@ def register():
     bpy.types.PoseBone.festivity_flow_sw_frequency = bpy.props.FloatProperty(
         default=1.0,
         min=0.01,
-        max=10.0,
+        max=20.0,
         description="Number of complete wave cycles per second",
         update=update_sw_frequency,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
@@ -300,9 +300,9 @@ def register():
     )
 
     bpy.types.PoseBone.festivity_flow_sw_delay = bpy.props.FloatProperty(
-        default=3.0,
+        default=1.0,
         min=0.0,
-        max=48.0,
+        max=100.0,
         description="Frame offset between bones in the chain, creating the cascading sway effect (in frames)",
         update=update_sw_delay,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
@@ -311,8 +311,8 @@ def register():
 
     bpy.types.PoseBone.festivity_flow_sw_offset = bpy.props.FloatProperty(
         default=0.0,
-        min=-100.0,
-        max=100.0,
+        min=-1000.0,
+        max=1000.0,
         description="Frame offset for the chain's starting position in the wave cycle",
         update=update_sw_offset,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
@@ -370,7 +370,7 @@ def register():
     )
 
     bpy.types.PoseBone.festivity_flow_sw_sub_frequency = bpy.props.FloatProperty(
-        default=2.0,
+        default=1.0,
         min=0.01,
         max=20.0,
         description="Number of complete Z-axis wave cycles per second",
@@ -380,9 +380,9 @@ def register():
     )
 
     bpy.types.PoseBone.festivity_flow_sw_sub_delay = bpy.props.FloatProperty(
-        default=1.5,
+        default=1.0,
         min=0.0,
-        max=48.0,
+        max=100.0,
         description="Frame offset between bones for the Z-axis wave cascade (in frames)",
         update=update_sw_sub_delay,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
@@ -391,8 +391,8 @@ def register():
 
     bpy.types.PoseBone.festivity_flow_sw_sub_offset = bpy.props.FloatProperty(
         default=0.0,
-        min=-100.0,
-        max=100.0,
+        min=-1000.0,
+        max=1000.0,
         description="Frame offset for the Z-axis wave starting position",
         update=update_sw_sub_offset,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
@@ -400,7 +400,7 @@ def register():
     )
 
     bpy.types.PoseBone.festivity_flow_sw_sub_falloff_start = bpy.props.FloatProperty(
-        default=0.0,
+        default=0.2,
         min=0.0,
         max=1.0,
         description="Z-axis wave amplitude factor at the chain root",
