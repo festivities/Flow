@@ -26,5 +26,5 @@ paths_exclude_pattern = [
   ".git",
   "*.zip",
   ".gitignore",
-  ".bat",
+  "*.bat",
 ]
