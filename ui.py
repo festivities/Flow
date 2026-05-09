@@ -80,6 +80,9 @@ class FESTIVITY_FLOW_PT_main_panel(Panel):
                 row.prop(root, "festivity_flow_sw_delay", text="Delay")
 
                 row = boxx.row(align=True)
+                row.prop(root, "festivity_flow_sw_delay_opposite", text="Reverse Direction")
+
+                row = boxx.row(align=True)
                 row.prop(root, "festivity_flow_sw_offset", text="Offset (frames)")
 
                 row = boxx.row(align=True)
@@ -103,6 +106,9 @@ class FESTIVITY_FLOW_PT_main_panel(Panel):
 
                 row = boxx.row(align=True)
                 row.prop(root, "festivity_flow_sw_sub_delay", text="Delay")
+
+                row = boxx.row(align=True)
+                row.prop(root, "festivity_flow_sw_sub_delay_opposite", text="Reverse Direction")
 
                 row = boxx.row(align=True)
                 row.prop(root, "festivity_flow_sw_sub_offset", text="Offset (frames)")

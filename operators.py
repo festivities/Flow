@@ -294,9 +294,11 @@ class FESTIVITY_FLOW_OT_preset_add(AddPresetBase, Operator):
 
         props = [
             "festivity_flow_sw_amplitude", "festivity_flow_sw_frequency", "festivity_flow_sw_delay",
+            "festivity_flow_sw_delay_opposite",
             "festivity_flow_sw_offset", "festivity_flow_sw_falloff_start", "festivity_flow_sw_speed",
             "festivity_flow_sw_sub_amplitude", "festivity_flow_sw_sub_frequency",
-            "festivity_flow_sw_sub_delay", "festivity_flow_sw_sub_falloff_start",
+            "festivity_flow_sw_sub_delay", "festivity_flow_sw_sub_delay_opposite",
+            "festivity_flow_sw_sub_falloff_start",
         ]
 
         with open(filepath, 'w', encoding='utf-8') as f:

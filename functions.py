@@ -233,7 +233,14 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
     root_path = chain_root.path_from_id()
 
     fps = bpy.context.scene.render.fps
-    f2_const = round(bone_index / (total_bones * 2), 4)
+    rev_index = bone_index
+    if is_sub:
+        if not chain_root.festivity_flow_sw_sub_delay_opposite:
+            rev_index = total_bones - 1 - bone_index
+    else:
+        if not chain_root.festivity_flow_sw_delay_opposite:
+            rev_index = total_bones - 1 - bone_index
+    f2_const = round(rev_index / (total_bones * 2), 4)
 
     if "_sw_mo" not in sway_target:
         sway_target["_sw_mo"] = 0.0
@@ -600,6 +607,7 @@ def bone_has_custom_sway_settings(pb):
         "festivity_flow_sw_amplitude",
         "festivity_flow_sw_frequency",
         "festivity_flow_sw_delay",
+        "festivity_flow_sw_delay_opposite",
         "festivity_flow_sw_offset",
         "festivity_flow_sw_falloff_start",
         "festivity_flow_sw_speed",
@@ -608,6 +616,7 @@ def bone_has_custom_sway_settings(pb):
         "festivity_flow_sw_sub_amplitude",
         "festivity_flow_sw_sub_frequency",
         "festivity_flow_sw_sub_delay",
+        "festivity_flow_sw_sub_delay_opposite",
         "festivity_flow_sw_sub_offset",
         "festivity_flow_sw_sub_falloff_start",
         "festivity_flow_sw_bias",

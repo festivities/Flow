@@ -88,6 +88,13 @@ def update_sw_delay(self, context):
     return
 
 
+def update_sw_delay_opposite(self, context):
+    update_sw_prop(self, "festivity_flow_sw_delay_opposite", self.festivity_flow_sw_delay_opposite)
+    from .functions import rebuild_sway_drivers
+    rebuild_sway_drivers(self)
+    return
+
+
 def update_sw_offset(self, context):
     update_sw_prop(self, "festivity_flow_sw_offset", self.festivity_flow_sw_offset)
     return
@@ -125,6 +132,13 @@ def update_sw_sub_frequency(self, context):
 
 def update_sw_sub_delay(self, context):
     update_sw_prop(self, "festivity_flow_sw_sub_delay", self.festivity_flow_sw_sub_delay)
+    return
+
+
+def update_sw_sub_delay_opposite(self, context):
+    update_sw_prop(self, "festivity_flow_sw_sub_delay_opposite", self.festivity_flow_sw_sub_delay_opposite)
+    from .functions import rebuild_sway_drivers
+    rebuild_sway_drivers(self)
     return
 
 
@@ -309,6 +323,14 @@ def register():
         override={"LIBRARY_OVERRIDABLE"},
     )
 
+    bpy.types.PoseBone.festivity_flow_sw_delay_opposite = bpy.props.BoolProperty(
+        default=False,
+        description="Reverse the wave cascade direction so the root leads and the tip trails",
+        update=update_sw_delay_opposite,
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
+        override={"LIBRARY_OVERRIDABLE"},
+    )
+
     bpy.types.PoseBone.festivity_flow_sw_offset = bpy.props.FloatProperty(
         default=0.0,
         min=-1000.0,
@@ -385,6 +407,14 @@ def register():
         max=100.0,
         description="Frame offset between bones for the Z-axis wave cascade (in frames)",
         update=update_sw_sub_delay,
+        options={"LIBRARY_EDITABLE", "ANIMATABLE"},
+        override={"LIBRARY_OVERRIDABLE"},
+    )
+
+    bpy.types.PoseBone.festivity_flow_sw_sub_delay_opposite = bpy.props.BoolProperty(
+        default=False,
+        description="Reverse the sub-axis wave cascade direction so the root leads and the tip trails",
+        update=update_sw_sub_delay_opposite,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
     )
@@ -487,6 +517,7 @@ def unregister():
     del bpy.types.PoseBone.festivity_flow_sw_bias
     del bpy.types.PoseBone.festivity_flow_sw_sub_falloff_start
     del bpy.types.PoseBone.festivity_flow_sw_sub_offset
+    del bpy.types.PoseBone.festivity_flow_sw_sub_delay_opposite
     del bpy.types.PoseBone.festivity_flow_sw_sub_delay
     del bpy.types.PoseBone.festivity_flow_sw_sub_frequency
     del bpy.types.PoseBone.festivity_flow_sw_sub_amplitude
@@ -495,6 +526,7 @@ def unregister():
     del bpy.types.PoseBone.festivity_flow_sw_speed
     del bpy.types.PoseBone.festivity_flow_sw_falloff_start
     del bpy.types.PoseBone.festivity_flow_sw_offset
+    del bpy.types.PoseBone.festivity_flow_sw_delay_opposite
     del bpy.types.PoseBone.festivity_flow_sw_delay
     del bpy.types.PoseBone.festivity_flow_sw_frequency
     del bpy.types.PoseBone.festivity_flow_sw_amplitude
