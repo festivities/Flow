@@ -2,3 +2,4 @@
 .opencode/
 data/
 __pycache__/
+*.zip

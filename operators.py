@@ -272,47 +272,31 @@ class FESTIVITY_FLOW_OT_preset_add(AddPresetBase, Operator):
         options={"SKIP_SAVE"},
     )
 
-    def _user_presets(self, context):
-        import os
-        preset_dir = os.path.join(bpy.utils.script_path_user(), "presets", self.preset_subdir)
-        items = []
-        if os.path.isdir(preset_dir):
-            for f in sorted(os.listdir(preset_dir)):
-                if f.endswith(".py"):
-                    display = f[:-3]
-                    items.append((display, display, ""))
-        if not items:
-            items.append(("NONE", "No user presets found", ""))
-        return items
-
-    preset_list: bpy.props.EnumProperty(
-        name="Preset",
-        description="Select a user preset to remove",
-        items=_user_presets,
-    )
-
     def invoke(self, context, event):
-        if self.remove_active:
-            return context.window_manager.invoke_props_dialog(self, confirm_text="Remove")
-        return AddPresetBase.invoke(self, context, event)
+        return context.window_manager.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
         layout = self.layout
         if self.remove_active:
-            layout.prop(self, "preset_list")
+            import os
+            preset_dir = os.path.join(bpy.utils.script_path_user(), "presets", self.preset_subdir)
+            if os.path.isdir(preset_dir):
+                py_files = sorted(f for f in os.listdir(preset_dir) if f.endswith(".py"))
+                if py_files:
+                    layout.label(text="Select a preset to remove:")
+                    col = layout.column(align=True)
+                    for f in py_files:
+                        name = f[:-3]
+                        op = col.operator("festivity_flow.preset_remove", text=name)
+                        op.preset_name = name
+                else:
+                    layout.label(text="No user presets found")
+            else:
+                layout.label(text="No user presets found")
         else:
             layout.prop(self, "name")
 
     def execute(self, context):
-        import os
-        if self.remove_active:
-            if self.preset_list == "NONE":
-                return {'CANCELLED'}
-            preset_dir = os.path.join(bpy.utils.script_path_user(), "presets", self.preset_subdir)
-            filepath = os.path.join(preset_dir, self.preset_list + ".py")
-            if os.path.exists(filepath):
-                os.remove(filepath)
-            return {'FINISHED'}
         return AddPresetBase.execute(self, context)
 
     def add(self, context, filepath):
@@ -343,6 +327,23 @@ class FESTIVITY_FLOW_OT_preset_add(AddPresetBase, Operator):
             f.write("    for attr, value in settings.items():\n")
             f.write("        setattr(pb, attr, value)\n")
             f.write("    pb.festivity_flow_update = True\n")
+
+
+class FESTIVITY_FLOW_OT_preset_remove(Operator):
+    """Remove a user-created preset"""
+    bl_idname = "festivity_flow.preset_remove"
+    bl_label = "Remove Preset"
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+
+    preset_name: bpy.props.StringProperty()
+
+    def execute(self, context):
+        import os
+        preset_dir = os.path.join(bpy.utils.script_path_user(), "presets", "festivity_flow")
+        filepath = os.path.join(preset_dir, self.preset_name + ".py")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        return {'FINISHED'}
 
 
 class FESTIVITY_FLOW_OT_batch_offset(Operator):
@@ -550,6 +551,7 @@ _classes = [
     FESTIVITY_FLOW_OT_bake_sway,
     FESTIVITY_FLOW_MT_presets,
     FESTIVITY_FLOW_OT_preset_add,
+    FESTIVITY_FLOW_OT_preset_remove,
     FESTIVITY_FLOW_OT_batch_offset,
     FESTIVITY_FLOW_OT_adjust_offset,
     FESTIVITY_FLOW_OT_adjust_roll,
