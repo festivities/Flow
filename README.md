@@ -1,7 +1,12 @@
-<br>
 <p align="center">
-    <a href="https://github.com/festivities/Flow"><img src="https://raw.githubusercontent.com/hareru/public/73af35ea0cc3ccc30c1eccff1689c654aec3aeff/flow/B.gif" alt="Flow" width="400"/></a>
-    <a href="https://github.com/festivities/Flow"><img src="https://raw.githubusercontent.com/hareru/public/73af35ea0cc3ccc30c1eccff1689c654aec3aeff/flow/A.gif" alt="Flow" width="400"/></a>
+    <a href="https://github.com/festivities/Flow"><img src="https://github.com/hareru/public/blob/main/flow/C.gif?raw=true" alt="Flow"/></a>
+</p>
+
+---
+
+<p align="center">
+    <a href="https://github.com/festivities/Flow"><img src="https://github.com/hareru/public/blob/main/flow/B.gif?raw=true" alt="Flow" width="400"/></a>
+    <a href="https://github.com/festivities/Flow"><img src="https://github.com/hareru/public/blob/main/flow/A.gif?raw=true" alt="Flow" width="400"/></a>
 </p>
 
 ---
