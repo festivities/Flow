@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://github.com/festivities/Flow"><img src="https://raw.githubusercontent.com/hareru/public/dd3bf7e031924972d27b3e50d550e19e2ca4f06c/flow/C.gif" alt="Flow"/></a>
+    <a href="https://github.com/festivities/Flow"><img src="https://raw.githubusercontent.com/hareru/public/2121bf8dc1b66e3fbe6c6d00738bd54a7db3b76e/flow/C.gif" alt="Flow"/></a>
 </p>
 
 ---
