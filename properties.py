@@ -1,38 +1,41 @@
 from bpy.types import AddonPreferences
 import bpy
 
-# Selection order tracking cache: {(armature_name, bone_name): bool}
+# Selection order tracking
 _last_select_state = {}
+_last_tracked_counter = 0
 
 
 @bpy.app.handlers.persistent
 def _festivity_flow_track_selection(scene, depsgraph):
-    global _last_select_state
-    for arm_obj in bpy.data.objects:
-        if arm_obj.type != 'ARMATURE' or arm_obj.mode != 'POSE':
-            continue
-        counter = arm_obj.get('_festivity_flow_sel_counter', 0)
-        changed = False
-        for pb in arm_obj.pose.bones:
-            key = (arm_obj.name, pb.name)
-            is_sel = pb.select
-            was_sel = _last_select_state.get(key, False)
-            if is_sel and not was_sel:
-                counter += 1
-                pb.festivity_flow_selection_order = counter
-                changed = True
-            _last_select_state[key] = is_sel
-        if changed:
-            arm_obj['_festivity_flow_sel_counter'] = counter
+    global _last_select_state, _last_tracked_counter
 
+    if bpy.context.mode != 'POSE':
+        return
 
-@bpy.app.handlers.persistent
-def _festivity_flow_reset_on_undo(scene):
-    global _last_select_state
-    _last_select_state.clear()
-    for arm_obj in bpy.data.objects:
-        if arm_obj.type == 'ARMATURE' and '_festivity_flow_sel_counter' in arm_obj:
-            del arm_obj['_festivity_flow_sel_counter']
+    arm_obj = bpy.context.view_layer.objects.active
+    if arm_obj is None or arm_obj.type != 'ARMATURE':
+        return
+
+    stored_counter = arm_obj.get('_festivity_flow_sel_counter', 0)
+    if stored_counter != _last_tracked_counter:
+        _last_select_state.clear()
+        _last_tracked_counter = stored_counter
+
+    counter = stored_counter
+    changed = False
+    for pb in arm_obj.pose.bones:
+        is_sel = pb.select
+        was_sel = _last_select_state.get(pb.name, False)
+        if is_sel and not was_sel:
+            counter += 1
+            pb.festivity_flow_selection_order = counter
+            changed = True
+        _last_select_state[pb.name] = is_sel
+
+    if changed:
+        arm_obj['_festivity_flow_sel_counter'] = counter
+        _last_tracked_counter = counter
 
 
 #
@@ -495,7 +498,6 @@ def register():
     )
 
     bpy.app.handlers.depsgraph_update_post.append(_festivity_flow_track_selection)
-    bpy.app.handlers.undo_post.append(_festivity_flow_reset_on_undo)
 
 
 def unregister():
@@ -503,9 +505,6 @@ def unregister():
 
     if _festivity_flow_track_selection in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.remove(_festivity_flow_track_selection)
-
-    if _festivity_flow_reset_on_undo in bpy.app.handlers.undo_post:
-        bpy.app.handlers.undo_post.remove(_festivity_flow_reset_on_undo)
 
     del bpy.types.PoseBone.festivity_flow_selection_order
 
