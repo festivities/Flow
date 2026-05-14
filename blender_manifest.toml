@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "festivity_flow"
-version = "1.2.5"
+version = "1.3.0"
 name = "Flow"
 tagline = "One-click procedural wavy bone chain animation"
 maintainer = "festivity"
@@ -11,7 +11,7 @@ website = "https://github.com/festivities/Flow"
 
 tags = ["Animation"]
 
-blender_version_min = "5.0.0"
+blender_version_min = "4.4.0"
 
 license = [
   "SPDX:GPL-3.0-or-later",

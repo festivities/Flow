@@ -157,9 +157,13 @@ def _ensure_sway_target(rig, pb):
         sway_target.hide_render = True
         sway_target.hide_viewport = True
 
-        if len(rig.users_collection) > 0:
-            rig.users_collection[0].objects.link(sway_target)
-        else:
+        linked = False
+        for coll in rig.users_collection:
+            if coll.library is None and coll.override_library is None:
+                coll.objects.link(sway_target)
+                linked = True
+                break
+        if not linked:
             bpy.context.scene.collection.objects.link(sway_target)
 
     if sway_target.parent != rig:
@@ -194,22 +198,6 @@ def _ensure_sway_constraint(pb, sway_target):
 
 def clear_sway_drivers(rig, pb):
     """Remove sway chain drivers and helper constraints from a pose bone."""
-    bone_path = pb.path_from_id()
-    if rig.animation_data:
-        remove_list = []
-        for drv in rig.animation_data.drivers:
-            if drv.data_path.startswith(bone_path) and "rotation_euler" in drv.data_path:
-                has_marker = False
-                for var in drv.driver.variables:
-                    if var.name == "sw":
-                        has_marker = True
-                        break
-                if has_marker:
-                    remove_list.append(drv)
-
-        for drv in remove_list:
-            rig.animation_data.drivers.remove(drv)
-
     sway_con = pb.constraints.get(_get_sway_constraint_name())
     if sway_con is not None:
         pb.constraints.remove(sway_con)

@@ -34,8 +34,11 @@ def _festivity_flow_track_selection(scene, depsgraph):
         _last_select_state[pb.name] = is_sel
 
     if changed:
-        arm_obj['_festivity_flow_sel_counter'] = counter
-        _last_tracked_counter = counter
+        try:
+            arm_obj['_festivity_flow_sel_counter'] = counter
+            _last_tracked_counter = counter
+        except:
+            pass
 
 
 #
