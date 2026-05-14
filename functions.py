@@ -146,6 +146,17 @@ def _get_sway_constraint_name():
     return "FESTIVITY_FLOW_Sway"
 
 
+def _ensure_flow_collection():
+    """Return the local 'Festivity Flow' collection under the scene root, creating it if needed."""
+    coll = bpy.data.collections.get("Festivity Flow")
+    if coll is None or coll.library is not None or coll.override_library is not None:
+        coll = bpy.data.collections.new("Festivity Flow")
+    if coll.name not in bpy.context.scene.collection.children:
+        bpy.context.scene.collection.children.link(coll)
+    coll.hide_render = True
+    return coll
+
+
 def _ensure_sway_target(rig, pb):
     target_name = _get_sway_target_name(rig, pb)
     sway_target = bpy.data.objects.get(target_name)
@@ -157,14 +168,7 @@ def _ensure_sway_target(rig, pb):
         sway_target.hide_render = True
         sway_target.hide_viewport = True
 
-        linked = False
-        for coll in rig.users_collection:
-            if coll.library is None and coll.override_library is None:
-                coll.objects.link(sway_target)
-                linked = True
-                break
-        if not linked:
-            bpy.context.scene.collection.objects.link(sway_target)
+        _ensure_flow_collection().objects.link(sway_target)
 
     if sway_target.parent != rig:
         sway_target.parent = rig
