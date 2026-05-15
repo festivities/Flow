@@ -40,10 +40,13 @@
 
 ## Installation
 
-1. Download [Flow](https://github.com/festivities/Flow/releases).
-1. In Blender, go to `Edit -> Preferences -> Get Extensions -> Extension Settings -> Install from Disk...`.
-1. Locate and select the downloaded file.
-1. Upon successful installation, the `Flow` category will appear in the `N-Panel` (shortcut: **N**).
+> [!TIP]
+> Flow is available on the [Blender Extensions Platform](https://extensions.blender.org/add-ons/festivity-flow/).
+
+1. Alternatively, download Flow on GitHub [here](https://github.com/festivities/Flow/releases).
+2. In Blender, go to `Edit -> Preferences -> Get Extensions -> Extension Settings -> Install from Disk...`.
+3. Locate and select the downloaded file.
+4. Upon successful installation, the `Flow` category will appear in the `N-Panel` (shortcut: **N**).
 
 ## Compatibility
 
@@ -66,4 +69,4 @@ This extension is confirmed to be compatible with the following Blender versions
 ## [License](./LICENSE)
 
 ## Transparency on AI
-This extension was built with the assistance of AI *(Claude Opus 4.6, DeepSeek V4 Pro)* and is based on <a href="https://youtu.be/oiEjz_-8wfk">AFPHairRig</a>, a **free** and **source-available** script.
+This extension was built with the assistance of AI and is based on <a href="https://youtu.be/oiEjz_-8wfk">AFPHairRig</a>, a **free** and **source-available** script.

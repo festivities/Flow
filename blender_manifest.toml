@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "festivity_flow"
-version = "1.3.0"
+version = "1.3.1"
 name = "Flow"
 tagline = "One-click procedural wavy bone chain animation"
 maintainer = "festivity"

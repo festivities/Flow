@@ -43,7 +43,7 @@ def _draw_sway_arrows():
             bone_y = (mat_world_rot @ pb.y_axis).normalized()
             bone_z = (mat_world_rot @ pb.z_axis).normalized()
 
-            roll_rad = math.radians(get_root_from_sway_bone(pb).festivity_flow_sw_roll)
+            roll_rad = math.radians(-get_root_from_sway_bone(pb).festivity_flow_sw_roll)
             sr = math.sin(roll_rad)
             cr = math.cos(roll_rad)
 
