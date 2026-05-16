@@ -195,22 +195,22 @@ class FESTIVITY_FLOW_OT_bake_sway(Operator):
 
         # Insert baked keyframes
         for rig, bone_data in rig_driven.items():
+            adt = rig.animation_data_create()
+
+            if self.sep_action:
+                action = bpy.data.actions.new(name=rig.name + "_SwayBaked")
+                adt.action = action
+            else:
+                if adt.action is None:
+                    action = bpy.data.actions.new(name=rig.name + "_Action")
+                    adt.action = action
+                else:
+                    action = adt.action
+
             for bone_name, sample_data in bone_data.items():
                 frame_vals = sample_data["frame_values"]
                 if len(frame_vals) == 0:
                     continue
-
-                adt = rig.animation_data_create()
-
-                if self.sep_action:
-                    action = bpy.data.actions.new(name=rig.name + "_SwayBaked")
-                    adt.action = action
-                else:
-                    if adt.action is None:
-                        action = bpy.data.actions.new(name=rig.name + "_Action")
-                        adt.action = action
-                    else:
-                        action = adt.action
 
                 data_path = sample_data["data_path"]
 
