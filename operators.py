@@ -222,13 +222,25 @@ class FESTIVITY_FLOW_OT_bake_sway(Operator):
                         if fcu is None:
                             fcu = action.fcurves.new(data_path, index=axis)
 
-                    while len(fcu.keyframe_points) > 0:
-                        fcu.keyframe_points.remove(fcu.keyframe_points[0])
+                    # Only clear the baked range, so keyframes outside of it survive
+                    stale = [
+                        i for i, kp in enumerate(fcu.keyframe_points)
+                        if frame_start <= kp.co[0] <= frame_end
+                    ]
+                    for i in reversed(stale):
+                        fcu.keyframe_points.remove(fcu.keyframe_points[i], fast=True)
 
+                    # New points are appended, so offset past the surviving ones
+                    offset = len(fcu.keyframe_points)
                     fcu.keyframe_points.add(len(frame_vals))
                     for i, (frame, values) in enumerate(frame_vals):
-                        fcu.keyframe_points[i].co = (frame, values[axis])
-                        fcu.keyframe_points[i].interpolation = 'LINEAR'
+                        kp = fcu.keyframe_points[offset + i]
+                        kp.co = (frame, values[axis])
+                        kp.interpolation = 'LINEAR'
+                        kp.handle_left_type = 'AUTO_CLAMPED'
+                        kp.handle_right_type = 'AUTO_CLAMPED'
+
+                    fcu.update()
                 
         # Clean up sway properties
         for chain in sim_chains:
