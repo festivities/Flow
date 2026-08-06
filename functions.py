@@ -211,8 +211,8 @@ def clear_sway_drivers(rig, pb):
         bpy.data.objects.remove(sway_target, do_unlink=True)
 
 
-def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, is_sub=False):
-    """Add a single sway driver to the hidden helper target."""
+def _get_chain_root(pb):
+    """Return the bone holding the settings for the chain the given bone belongs to."""
     chain_root = pb
     for par in pb.parent_recursive:
         if par.festivity_flow_has_sway and par.festivity_flow_chain_id == pb.festivity_flow_chain_id:
@@ -222,91 +222,124 @@ def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, 
         else:
             break
 
+    return chain_root
+
+
+def _get_delay_factor(chain_root, bone_index, total_bones, is_sub=False):
+    """Return where this bone sits in the delay cascade, 0 at the leading end, 1 at the trailing one.
+
+    The delay is applied as a phase shift scaled by this factor, so the delay
+    value is the lag between the two ends of the chain measured in wave cycles.
+    That keeps the cascade shape identical no matter the frequency, the speed,
+    the scene fps or how many bones the chain has.
+    """
+    if is_sub:
+        opposite = chain_root.festivity_flow_sw_sub_delay_opposite
+    else:
+        opposite = chain_root.festivity_flow_sw_delay_opposite
+
+    rev_index = bone_index
+    if not opposite:
+        rev_index = total_bones - 1 - bone_index
+
+    return round(rev_index / max(total_bones - 1, 1), 4)
+
+
+def _ensure_phase_drivers(rig, pb, sway_target, bone_index, total_bones):
+    """(Re)create the main and sub wave drivers that the rotation drivers sample."""
+    chain_root = _get_chain_root(pb)
     root_path = chain_root.path_from_id()
 
     fps = bpy.context.scene.render.fps
 
-    if "_sw_mo" not in sway_target:
-        sway_target["_sw_mo"] = 0.0
-        sway_target["_sw_so"] = 0.0
+    if sway_target.animation_data is not None:
+        for prop_path in ('["_sw_mo"]', '["_sw_so"]'):
+            old_fc = sway_target.animation_data.drivers.find(prop_path)
+            if old_fc is not None:
+                sway_target.animation_data.drivers.remove(old_fc)
 
-        rev_index_main = bone_index
-        if not chain_root.festivity_flow_sw_delay_opposite:
-            rev_index_main = total_bones - 1 - bone_index
-        f2_const_main = round(rev_index_main / (total_bones * 2), 4)
+    sway_target["_sw_mo"] = 0.0
+    sway_target["_sw_so"] = 0.0
 
-        rev_index_sub = bone_index
-        if not chain_root.festivity_flow_sw_sub_delay_opposite:
-            rev_index_sub = total_bones - 1 - bone_index
-        f2_const_sub = round(rev_index_sub / (total_bones * 2), 4)
+    delay_main = _get_delay_factor(chain_root, bone_index, total_bones, is_sub=False)
+    delay_sub = _get_delay_factor(chain_root, bone_index, total_bones, is_sub=True)
 
-        fc_mo = sway_target.driver_add('["_sw_mo"]')
-        fc_mo.driver.type = 'SCRIPTED'
-        v = fc_mo.driver.variables.new()
-        v.name = "frq"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_frequency'
-        v = fc_mo.driver.variables.new()
-        v.name = "sp"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_speed'
-        v = fc_mo.driver.variables.new()
-        v.name = "dly"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_delay'
-        v = fc_mo.driver.variables.new()
-        v.name = "off"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_offset'
-        v = fc_mo.driver.variables.new()
-        v.name = "rs"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_random_seed'
-        fc_mo.driver.expression = f"sin(2*pi*frq*sp*(frame+dly*{f2_const_main}+rs*{fps})/{fps}+off/{fps})"
+    fc_mo = sway_target.driver_add('["_sw_mo"]')
+    fc_mo.driver.type = 'SCRIPTED'
+    v = fc_mo.driver.variables.new()
+    v.name = "frq"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_frequency'
+    v = fc_mo.driver.variables.new()
+    v.name = "sp"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_speed'
+    v = fc_mo.driver.variables.new()
+    v.name = "dly"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_delay'
+    v = fc_mo.driver.variables.new()
+    v.name = "off"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_offset'
+    v = fc_mo.driver.variables.new()
+    v.name = "rs"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_random_seed'
+    fc_mo.driver.expression = f"sin(2*pi*(frq*sp*(frame+rs*{fps})/{fps}+dly*{delay_main}/100)+off/{fps})"
 
-        fc_so = sway_target.driver_add('["_sw_so"]')
-        fc_so.driver.type = 'SCRIPTED'
-        v = fc_so.driver.variables.new()
-        v.name = "f2"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_sub_frequency'
-        v = fc_so.driver.variables.new()
-        v.name = "sp"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_speed'
-        v = fc_so.driver.variables.new()
-        v.name = "d2"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_sub_delay'
-        v = fc_so.driver.variables.new()
-        v.name = "o2"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_sub_offset'
-        v = fc_so.driver.variables.new()
-        v.name = "rs"
-        v.type = 'SINGLE_PROP'
-        v.targets[0].id_type = 'OBJECT'
-        v.targets[0].id = rig
-        v.targets[0].data_path = root_path + '.festivity_flow_sw_random_seed'
-        fc_so.driver.expression = f"sin(2*pi*f2*sp*(frame+d2*{f2_const_sub}+rs*{fps})/{fps}+o2/{fps})"
+    fc_so = sway_target.driver_add('["_sw_so"]')
+    fc_so.driver.type = 'SCRIPTED'
+    v = fc_so.driver.variables.new()
+    v.name = "f2"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_sub_frequency'
+    v = fc_so.driver.variables.new()
+    v.name = "sp"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_speed'
+    v = fc_so.driver.variables.new()
+    v.name = "d2"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_sub_delay'
+    v = fc_so.driver.variables.new()
+    v.name = "o2"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_sub_offset'
+    v = fc_so.driver.variables.new()
+    v.name = "rs"
+    v.type = 'SINGLE_PROP'
+    v.targets[0].id_type = 'OBJECT'
+    v.targets[0].id = rig
+    v.targets[0].data_path = root_path + '.festivity_flow_sw_random_seed'
+    fc_so.driver.expression = f"sin(2*pi*(f2*sp*(frame+rs*{fps})/{fps}+d2*{delay_sub}/100)+o2/{fps})"
+
+    return fc_mo, fc_so
+
+
+def _add_sway_driver(rig, pb, sway_target, axis_index, bone_index, total_bones, is_sub=False):
+    """Add a single sway driver to the hidden helper target."""
+    chain_root = _get_chain_root(pb)
+
+    root_path = chain_root.path_from_id()
 
     fc = sway_target.driver_add("rotation_euler", axis_index)
     drv = fc.driver
@@ -525,8 +558,15 @@ def create_sway_chains(chains):
 
         root_bone = chain[-1][0].pose.bones[chain[-1][1]]
 
-        if root_bone.festivity_flow_sw_random_seed == 0.0:
-            root_bone["festivity_flow_sw_random_seed"] = random.uniform(-2.0, 2.0)
+        # Only fresh chains get a seed, so a chain deliberately synced to 0 keeps it
+        if not bone_has_custom_sway_settings(root_bone):
+            seed = random.uniform(-2.0, 2.0)
+            for c_dat in chain:
+                bone = c_dat[0].pose.bones[c_dat[1]]
+                # Guarded, or every chain created in this batch would end up sharing one seed
+                bone.festivity_flow_update = False
+                bone.festivity_flow_sw_random_seed = seed
+                bone.festivity_flow_update = True
 
         for cc, c_dat in enumerate(chain[::-1]):
             rig = c_dat[0]
@@ -538,6 +578,8 @@ def create_sway_chains(chains):
 
             bone_index = cc
 
+            _ensure_phase_drivers(rig, bone, sway_target, bone_index, total_bones)
+
             _add_sway_driver(rig, bone, sway_target, 0, bone_index, total_bones, is_sub=False)
 
             _add_sway_driver(rig, bone, sway_target, 2, bone_index, total_bones, is_sub=True)
@@ -545,21 +587,15 @@ def create_sway_chains(chains):
     return
 
 
-def rebuild_sway_drivers(bone):
-    """Rebuild all sway drivers for the chain containing the given bone."""
-    if not bone.festivity_flow_has_sway:
-        return
-
-    rig = bone.id_data
-    chain_id = bone.festivity_flow_chain_id
-
+def get_ordered_chain_bones(rig, chain_id):
+    """Return the pose bones of a sway chain, root first."""
     chain_bones = []
     for pb in rig.pose.bones:
         if pb.festivity_flow_has_sway and pb.festivity_flow_chain_id == chain_id:
             chain_bones.append(pb)
 
     if len(chain_bones) == 0:
-        return
+        return []
 
     root_bone = None
     for pb in chain_bones:
@@ -583,12 +619,24 @@ def rebuild_sway_drivers(bone):
         if not found:
             break
 
+    return ordered
+
+
+def rebuild_sway_drivers(bone):
+    """Rebuild all sway drivers for the chain containing the given bone."""
+    if not bone.festivity_flow_has_sway:
+        return
+
+    rig = bone.id_data
+    ordered = get_ordered_chain_bones(rig, bone.festivity_flow_chain_id)
+
     total_bones = len(ordered)
 
     for cc, pb in enumerate(ordered):
         clear_sway_drivers(rig, pb)
         sway_target = _ensure_sway_target(rig, pb)
         _ensure_sway_constraint(pb, sway_target)
+        _ensure_phase_drivers(rig, pb, sway_target, cc, total_bones)
         _add_sway_driver(rig, pb, sway_target, 0, cc, total_bones, is_sub=False)
         _add_sway_driver(rig, pb, sway_target, 2, cc, total_bones, is_sub=True)
 

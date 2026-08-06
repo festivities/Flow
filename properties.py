@@ -320,10 +320,12 @@ def register():
     )
 
     bpy.types.PoseBone.festivity_flow_sw_delay = bpy.props.FloatProperty(
-        default=1.0,
+        default=10.0,
         min=0.0,
-        max=100.0,
-        description="Frame offset between bones in the chain, creating the cascading sway effect (in frames)",
+        max=1000.0,
+        soft_max=100.0,
+        subtype="PERCENTAGE",
+        description="Lag between the ends of the chain as a percentage of one wave cycle, creating the cascading sway effect. Independent of frequency, speed, fps and chain length (100% = the trailing bone is a full cycle behind the leading one)",
         update=update_sw_delay,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
@@ -408,10 +410,12 @@ def register():
     )
 
     bpy.types.PoseBone.festivity_flow_sw_sub_delay = bpy.props.FloatProperty(
-        default=1.0,
+        default=10.0,
         min=0.0,
-        max=100.0,
-        description="Frame offset between bones for the Z-axis wave cascade (in frames)",
+        max=1000.0,
+        soft_max=100.0,
+        subtype="PERCENTAGE",
+        description="Lag between the ends of the chain for the Z-axis wave cascade, as a percentage of one sub wave cycle. Independent of frequency, speed, fps and chain length",
         update=update_sw_sub_delay,
         options={"LIBRARY_EDITABLE", "ANIMATABLE"},
         override={"LIBRARY_OVERRIDABLE"},
