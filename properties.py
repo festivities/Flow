@@ -25,7 +25,10 @@ def _festivity_flow_track_selection(scene, depsgraph):
     counter = stored_counter
     changed = False
     for pb in arm_obj.pose.bones:
-        is_sel = pb.select
+        if bpy.app.version[0] >= 5:
+            is_sel = pb.select
+        else:
+            is_sel = pb.bone.select
         was_sel = _last_select_state.get(pb.name, False)
         if is_sel and not was_sel:
             counter += 1

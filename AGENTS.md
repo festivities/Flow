@@ -91,8 +91,8 @@ setting needs no rebuild. Only the baked constants (`K`, `F1`, `F2`, `fps`) requ
   should carry it.
 - Guard writes that must not cascade with `pb.festivity_flow_update = False` / `True`;
   `update_sw_prop()` returns early on that flag. It is also what preset scripts use.
-- Version branches use `if bpy.app.version[0] >= 5:` — currently pose bone selection
-  (`pb.select` vs `pb.bone.select`) and fcurve creation
+- Version branches use `if bpy.app.version[0] >= 5:` — currently pose bone selection in
+  `properties.py` and `functions.py` (`pb.select` vs `pb.bone.select`) and fcurve creation
   (`action.fcurve_ensure_for_datablock` vs `action.fcurves.new`).
 - Bake samples the evaluated pose per frame, *then* removes the drivers, writes keys only inside the
   bake range, and clears `has_sway` — a baked chain is no longer a Flow chain.
